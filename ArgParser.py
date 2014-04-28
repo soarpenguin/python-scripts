@@ -1,4 +1,28 @@
 import argparse
+import logging
+import sys
+import os
+
+script = os.path.basename(sys.argv[0])
+scriptname = os.path.splitext(script)[0]
+
+DEFAULT_LOG = "/var/log/" + scriptname
+LOG = logging.getLogger(scriptname)
+
+def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
+    """Sets up logging and associated handlers."""
+
+    LOG.setLevel(logging.INFO)
+    if backup_count is not None and max_bytes is not None:
+        assert backup_count > 0
+        assert max_bytes > 0
+        ch = RotatingFileHandler(logfile, 'a', max_bytes, backup_count)
+    else:  # Setup stream handler.
+        ch = logging.StreamHandler(sys.stdout)
+
+    ch.setFormatter(logging.Formatter('%(asctime)s %(name)s[%(process)d] '
+                                    '%(levelname)s: %(message)s'))
+    LOG.addHandler(ch)
 
 def parse_argument():
 
@@ -44,6 +68,10 @@ def parse_argument():
 if __name__ == '__main__':
 
     results = parse_argument()
+
+    setup_logging()
+    LOG.setLevel(logging.DEBUG)
+    LOG.debug("Print option value...")
 
     print results.simple_value
     print results.constant_value
