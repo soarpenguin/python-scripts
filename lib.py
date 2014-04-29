@@ -2,6 +2,8 @@
 
 import string
 import re
+import os
+import pwd
 import types
 from sys import stderr
 
@@ -33,7 +35,7 @@ class VarList(object):
         self.varbinds = []
 
         for var in vs:
-                self.varbinds.append(var)
+            self.varbinds.append(var)
 
     def __len__(self):
         return len(self.varbinds)
@@ -59,7 +61,23 @@ class VarList(object):
     def append(self, *vars):
          for var in vars:
                 self.varbinds.append(var)
+
+def drop_privileges(user="nobody"):
+    try:
+        ent = pwd.getpwnam(user)
+    except KeyError:
+        return
+
+    if os.getuid() != 0:
+        return
+
+    print >>stderr, "drop privilege."
+    os.setgid(ent.pw_gid)
+    os.setuid(ent.pw_uid)
+
 if __name__ == '__main__':
-    var_list = VarList();
-    var_list.append("name");
-    print >>stderr, STR(var_list);
+    var_list = VarList()
+    var_list.append("name")
+    print >>stderr, STR(var_list)
+
+    drop_privileges()
