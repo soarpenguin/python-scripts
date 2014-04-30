@@ -5,7 +5,10 @@ import re
 import os
 import pwd
 import types
+import sys
 from sys import stderr
+import stat
+import errno
 
 def _parse_args(args):
     dargs = {
@@ -22,7 +25,7 @@ def _parse_args(args):
         if dargs.has_key(key):
             dargs[key] = args[key]
         else:
-            print >>stderr, "ERROR: unknown key", key
+            print >>sys.stderr, "ERROR: unknown key", key
     return dargs
 
 def STR(obj):
@@ -75,9 +78,26 @@ def drop_privileges(user="nobody"):
     os.setgid(ent.pw_gid)
     os.setuid(ent.pw_uid)
 
+def is_sockfile(path):
+    """Returns whether or not the given path is a socket file."""
+    try:
+        s = os.stat(path)
+    except OSError, (no, e):
+        if no == errno.ENOENT:
+            return False
+        print >>sys.stderr, ("warning: couldn't stat(%r): %s" % (path, e))
+        return None
+    return s.st_mode & stat.S_IFSOCK == stat.S_IFSOCK
+
+def is_numeric(value):
+    return isinstance(value, (int, long, float))
+
 if __name__ == '__main__':
     var_list = VarList()
     var_list.append("name")
     print >>stderr, STR(var_list)
 
     drop_privileges()
+
+    print is_sockfile(sys.argv[0])
+
