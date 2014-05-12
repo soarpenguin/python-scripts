@@ -92,6 +92,14 @@ def is_sockfile(path):
 def is_numeric(value):
     return isinstance(value, (int, long, float))
 
+# next bit filched from 1.5.2's inspect.py
+def currentframe():
+   """Return the frame object for the caller's stack frame."""
+   try:
+       raise Exception
+   except:
+       return sys.exc_info()[2].tb_frame.f_back
+
 if __name__ == '__main__':
     var_list = VarList()
     var_list.append("name")
