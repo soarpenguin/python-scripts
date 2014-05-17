@@ -9,6 +9,7 @@ import sys
 from sys import stderr
 import stat
 import errno
+import time
 
 def _parse_args(args):
     dargs = {
@@ -92,6 +93,16 @@ def is_sockfile(path):
 def is_numeric(value):
     return isinstance(value, (int, long, float))
 
+def read_file(fpath):
+    BLOCK_SIZE = 1024
+    with open(fpath, 'rb') as f:
+        while True:
+            block = f.read(BLOCK_SIZE)
+            if block:
+                yield block
+            else:
+                return
+
 # next bit filched from 1.5.2's inspect.py
 def currentframe():
    """Return the frame object for the caller's stack frame."""
@@ -99,6 +110,9 @@ def currentframe():
        raise Exception
    except:
        return sys.exc_info()[2].tb_frame.f_back
+
+def shutdown():
+    print "exit"
 
 if __name__ == '__main__':
     var_list = VarList()
@@ -108,4 +122,13 @@ if __name__ == '__main__':
     drop_privileges()
 
     print is_sockfile(sys.argv[0])
+
+    for i in open("lib.py"):
+        print i
+
+    import atexit
+    atexit.register(shutdown)
+    
+    while True:
+        time.sleep(1)
 
