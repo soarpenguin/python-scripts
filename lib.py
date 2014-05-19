@@ -111,6 +111,14 @@ def currentframe():
    except:
        return sys.exc_info()[2].tb_frame.f_back
 
+IDENTIFIER = re.compile('^[a-z_][a-z0-9_]*$', re.I);
+
+def valid_ident(s):
+    m = IDENTIFIER.match(s)
+    if not m:
+        raise ValueError("Not a valid Python identifier: %r" % s)
+    return True
+
 def shutdown():
     print "exit"
 
@@ -123,11 +131,13 @@ if __name__ == '__main__':
 
     print is_sockfile(sys.argv[0])
 
-    for i in open("lib.py"):
-        print i
+    #for i in open("lib.py"):
+    #    print i
 
     import atexit
     atexit.register(shutdown)
+
+    print valid_ident("_fedl")
     
     while True:
         time.sleep(1)
