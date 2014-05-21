@@ -142,3 +142,13 @@ if __name__ == '__main__':
     while True:
         time.sleep(1)
 
+    import platform
+    if sys.platform.startswith('linux'):
+        sys.stderr.write('linux\n')
+    elif sys.platform == 'darwin' and platform.processor() == 'i386':
+        sys.stderr.write('darwin\n')
+    elif os.name == 'nt':
+        sys.stderr.write('nt\n')
+    else:
+        sys.stderr.write('not found\n')
+
