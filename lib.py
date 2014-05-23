@@ -119,6 +119,25 @@ def valid_ident(s):
         raise ValueError("Not a valid Python identifier: %r" % s)
     return True
 
+def _repr(self):
+    return "<%s at 0x%x: %s>" % (self.__class__.__name__, id(self), self)
+
+def _parse_num(val, type):
+    if val[:2].lower() == "0x":         # hexadecimal
+        radix = 16
+    elif val[:2].lower() == "0b":       # binary
+        radix = 2
+        val = val[2:] or "0"            # have to remove "0b" prefix
+    elif val[:1] == "0":                # octal
+        radix = 8
+    else:                               # decimal
+        radix = 10
+
+    return type(val, radix)
+
+def _parse_int(val):
+    return _parse_num(val, int)
+
 def shutdown():
     print "exit"
 
@@ -139,8 +158,9 @@ if __name__ == '__main__':
 
     print valid_ident("_fedl")
     
-    while True:
-        time.sleep(1)
+    _repr(var_list)
+    #while True:
+    #    time.sleep(1)
 
     import platform
     if sys.platform.startswith('linux'):
@@ -152,3 +172,4 @@ if __name__ == '__main__':
     else:
         sys.stderr.write('not found\n')
 
+    print _parse_int("02345")
