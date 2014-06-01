@@ -75,7 +75,12 @@ def is_device(device_name, allow_virtual):
 
 def main():
     """iostats main loop."""
-    f_diskstats = open("/proc/diskstats", "r")
+    try:
+        f_diskstats = open("/proc/diskstats", "r")
+    except IOError, e:
+        utils.err("error: can't open /proc/diskstats: %s" % e)
+        return 13 # Ask tcollector to not respawn us
+
     HZ = get_system_hz()
     itv = 1.0
     uptime = read_uptime()
@@ -110,7 +115,7 @@ def main():
                               device))
 
                 ret = is_device(device, 0)
-                # if a device or a partition, calculate the svctm/await/util"""
+                # if a device or a partition, calculate the svctm/await/util                
                 if ret:
                     stats = dict(zip(FIELDS_DISK, values[3:]))
                     nr_ios = float(stats.get("read_requests")) + float(stats.get("write_requests"))
