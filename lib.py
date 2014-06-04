@@ -93,6 +93,10 @@ def is_sockfile(path):
 def is_numeric(value):
     return isinstance(value, (int, long, float))
 
+NUMBER_RE = re.compile(
+    r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
+    (re.VERBOSE | re.MULTILINE | re.DOTALL))
+
 def read_file(fpath):
     BLOCK_SIZE = 1024
     with open(fpath, 'rb') as f:
