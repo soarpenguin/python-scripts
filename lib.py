@@ -142,6 +142,41 @@ def _parse_num(val, type):
 def _parse_int(val):
     return _parse_num(val, int)
 
+#######################################################
+def _floatconstants():
+    _BYTES = '7FF80000000000007FF0000000000000'.decode('hex')
+    if sys.byteorder != 'big':
+        _BYTES = _BYTES[:8][::-1] + _BYTES[8:][::-1]
+    nan, inf = struct.unpack('dd', _BYTES)
+    return nan, inf, -inf
+
+NaN, PosInf, NegInf = _floatconstants()
+
+
+def linecol(doc, pos):
+    lineno = doc.count('\n', 0, pos) + 1
+    if lineno == 1:
+        colno = pos + 1
+    else:
+        colno = pos - doc.rindex('\n', 0, pos)
+    return lineno, colno
+
+
+def errmsg(msg, doc, pos, end=None):
+    # Note that this function is called from _json
+    lineno, colno = linecol(doc, pos)
+    if end is None:
+        fmt = '{0}: line {1} column {2} (char {3})'
+        return fmt.format(msg, lineno, colno, pos)
+        #fmt = '%s: line %d column %d (char %d)'
+        #return fmt % (msg, lineno, colno, pos)
+    endlineno, endcolno = linecol(doc, end)
+    fmt = '{0}: line {1} column {2} - line {3} column {4} (char {5} - {6})'
+    return fmt.format(msg, lineno, colno, endlineno, endcolno, pos, end)
+    #fmt = '%s: line %d column %d - line %d column %d (char %d - %d)'
+    #return fmt % (msg, lineno, colno, endlineno, endcolno, pos, end)
+
+
 def shutdown():
     print "exit"
 
