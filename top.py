@@ -7,6 +7,7 @@
 
 import sys
 import re
+import os
 from optparse import OptionParser
 
 def read_uptime():
@@ -62,11 +63,43 @@ def gotoxy(x, y):
     """ Moves the cursor to the specified position. """
     print "\033[%d;%dH" % (x, y)
 
+def getpagesize():
+    """ get the system pagesize from /proc/self/smaps """
+    SMAPS = "/proc/self/smaps"
+    size = 4
+    unit = "kB"
+    pattern = re.compile(r'KernelPageSize|MMUPageSize')
+
+    if os.path.exists(SMAPS):
+        try:
+            f_smaps = open(SMAPS, "r")
+            
+            for line in f_smaps:
+                m = pattern.match(line)
+                if m:
+                    array = re.split("\s+", line)
+                    size = array[1]
+                    unit = array[2]
+                    break
+        finally:
+            f_smaps.close()
+    
+    if re.match("kB", unit):
+        size = int(size) * 1024
+    elif re.match("mB", unit):
+        size = int(size) * 1024 * 1024
+    elif re.match("gB", unit):
+        size = int(size) * 1024 * 1024 * 1024
+
+    return size
+
 def main(argv):
     """ The main top entry point and loop."""
     
     options, args = parse_cmdline(argv)
     clrscr()
+    size = getpagesize()
+    print size
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
