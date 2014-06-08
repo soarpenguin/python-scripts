@@ -28,16 +28,16 @@ def parse_argument():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-s', action = 'store',
-                dest = 'simple_value',
-                help = 'Store a simple value'
-            )
+    parser.add_argument('-s', action='store',
+                        dest='simple_value',
+                        help='Store a simple value'
+                    )
 
-    parser.add_argument('-c', action = 'store_const',
-                dest = 'constant_value',
-                const = 'value-to-store',
-                help = 'Store a constant value'
-            )
+    parser.add_argument('-c', action='store_const',
+                        dest='constant_value',
+                        const='value-to-store',
+                        help='Store a constant value'
+                    )
 
     parser.add_argument('-t', action = 'store_true',
                 default = False,
