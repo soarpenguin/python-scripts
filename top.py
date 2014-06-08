@@ -9,6 +9,7 @@ import sys
 import re
 import os
 from optparse import OptionParser
+from terminal import *
 
 
 def read_uptime():
@@ -50,26 +51,6 @@ def parse_cmdline(argv):
     (options, args) = parser.parse_args(args=argv[1:])
 
     return (options, args)
-
-
-def clrscr():
-    """ Clear screen and move cursor to 1,1 (upper left) pos. """
-    print '\033[2J\033[1;1H'
-
-
-def clreol():
-    """ Erases from the current cursor position to the end of the current line. """
-    print '\033[K'
-
-
-def delline():
-    """ Erases the entire current line. """
-    print '\033[2K'
-
-
-def gotoxy(x, y):
-    """ Moves the cursor to the specified position. """
-    print "\033[%d;%dH" % (x, y)
 
 
 def getpagesize():
