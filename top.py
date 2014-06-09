@@ -10,6 +10,7 @@ import re
 import os
 from optparse import OptionParser
 from terminal import *
+import curses, traceback
 
 
 def read_uptime():
@@ -88,9 +89,32 @@ def main(argv):
     """ The main top entry point and loop."""
 
     options, args = parse_cmdline(argv)
-    clrscr()
+    #clrscr()
     size = getpagesize()
     print size
+    try:
+        curses.initscr()
+        screen=curses.newwin(80, 74, 0, 0)
+        screen.box()
+        #curses.noecho()
+        curses.cbreak()
+        screen.keypad(1)
+        #screen.clear()
+        height,width=screen.getmaxyx()
+        screen.addstr(0, 0, "jjjjjjjjjj", curses.A_BLINK)
+        screen.refresh()
+
+        curses.nocbreak()
+        screen.keypad(0)
+        curses.echo()
+    except:
+        curses.nocbreak()
+        screen.keypad(0)
+        curses.echo()
+        traceback.print_exc() 
+    finally:
+        curses.endwin()
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
