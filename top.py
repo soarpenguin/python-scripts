@@ -85,6 +85,29 @@ def getpagesize():
     return size
 
 
+def fmttime(seconds):
+    """ format sceconds to string like: '12days, 01:12' """
+    tmpstring=""
+    if not str(seconds).isdigit():
+        return tmpstring
+
+    day = int(seconds) / ((24 * 60 * 60))
+    hour = int(seconds) / (60 * 60) % 24
+    minuter = int(seconds) / 60 % 60
+
+    if day > 1:
+        tmpstring += "%s days, " % day
+    else: 
+        tmpstring += "%s day, " % day
+
+    if hour > 0:
+        tmpstring += "%02d:%02d" % (hour, minuter)
+    else:
+        tmpstring += "%02d min" % min
+
+    return tmpstring
+
+
 def main(argv):
     """ The main top entry point and loop."""
 
@@ -92,6 +115,7 @@ def main(argv):
     #clrscr()
     size = getpagesize()
     print size
+    print fmttime(3600)
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
