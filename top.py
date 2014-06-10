@@ -56,6 +56,7 @@ def parse_cmdline(argv):
 
 def getpagesize():
     """ get the system pagesize from /proc/self/smaps """
+
     SMAPS = "/proc/self/smaps"
     size = 4
     unit = "kB"
@@ -85,8 +86,32 @@ def getpagesize():
     return size
 
 
+CPU_T = (
+    "u", "s", "n", "i", "w"        
+)
+def get_cpu_info():
+    """get cpus infomation from /proc/stat """
+
+    cpus = list()
+    cpustat = "/proc/stat"
+    try:
+        f_stat = open(cpustat, "r")
+    except IOError, e:
+        return cpus
+
+    f_stat.seek(0)
+    for line in f_stat:
+        if re.match("cpu", line):
+            values = line.split(None)
+            cpu = dict(zip(CPU_T, values[1:]))
+            cpus.append(cpu)
+
+    f_stat.close()
+    return cpus
+
+
 def fmttime(seconds):
-    """ format sceconds to string like: '12days, 01:12' """
+    """ format seconds to string like: '12days, 01:12' """
     tmpstring=""
     if not str(seconds).isdigit():
         return tmpstring
@@ -116,6 +141,10 @@ def main(argv):
     size = getpagesize()
     print size
     print fmttime(3600)
+    cpus = get_cpu_info()
+    #for elem in cpus:
+    #    for key in elem.keys():
+    #        print "%s => %s" % (key, elem.get(key))
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
