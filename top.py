@@ -133,6 +133,41 @@ def fmttime(seconds):
     return tmpstring
 
 
+def fmtshare(share, pagesize):
+    """ format share size """
+    if (not str(share).isdigit()) or (not str(pagesize).isdigit()):
+        return "?"
+
+    share = int(share) * (int(pagesize) >> 10)
+    tmpstring = ""
+
+    if (int(share) <= 9999):
+        tmpstring = "%d" % share
+    elif (int(share) <= 2 << 20):
+        tmpstring = "%dm" % (int(share) >> 10)
+    elif (int(share) <= 2 << 30):
+        tmpstring = "%dg" % (int(share) >> 20)
+    else:
+        tmpstring = "?"
+
+    return tmpstring
+
+
+def get_all_process():
+    """ get all process id from /proc. """
+
+    PROC = "/proc"
+    process = list()
+    try:
+        process = os.listdir(PROC)
+
+        process = [elem for elem in process if str(elem).isdigit() ]
+    except:
+        return list()
+
+    return process
+
+
 def main(argv):
     """ The main top entry point and loop."""
 
@@ -145,6 +180,7 @@ def main(argv):
     #for elem in cpus:
     #    for key in elem.keys():
     #        print "%s => %s" % (key, elem.get(key))
+    print get_all_process()
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
