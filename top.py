@@ -168,6 +168,45 @@ def get_all_process():
     return process
 
 
+def get_sys_loads():
+    """ get sys loads from /proc/loadavg. """
+
+    LOADAVG = "/proc/loadavg"
+    loadavg = list()
+    try:
+        f_loadavg = open(LOADAVG, "r")
+    except IOError, e:
+        return loadavg
+
+    f_loadavg.seek(0)
+    loadavg = f_loadavg.readline().split(None)[0:3]
+
+    f_loadavg.close()
+    return loadavg
+
+
+def get_memswap_info():
+    """ get memory and swap infomation from /proc/meminfo. """
+
+    MEMINFO = "/proc/meminfo"
+    meminfo = list()
+    pattern = re.compile(r'MemTotal|MemFree|Buffers|Cached|SwapTotal|SwapFree')
+
+    try:
+        f_meminfo = open(MEMINFO, "r")
+    except IOError, e:
+        return meminfo
+
+    f_meminfo.seek(0)
+    for line in f_meminfo:
+        m = pattern.match(line)
+        if m:
+            meminfo.append(line.split(None)[1])
+
+    f_meminfo.close()
+    return meminfo
+
+
 def main(argv):
     """ The main top entry point and loop."""
 
@@ -181,6 +220,8 @@ def main(argv):
     #    for key in elem.keys():
     #        print "%s => %s" % (key, elem.get(key))
     print get_all_process()
+    print get_sys_loads()
+    print get_memswap_info()
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
@@ -190,7 +231,7 @@ def main(argv):
         screen.keypad(1)
         #screen.clear()
         height,width=screen.getmaxyx()
-        screen.addstr(0, 0, "jjjjjjjjjj", curses.A_BLINK)
+        screen.addstr(0, 0, "screen", curses.A_BLINK)
         screen.refresh()
 
         curses.nocbreak()
