@@ -207,6 +207,22 @@ def get_memswap_info():
     return meminfo
 
 
+def scale_num(num, width, pagesize):
+    """ format number to fit width. """
+
+    num = int(num) * (int(pagesize) >> 10)
+    tmpstring = "?"
+
+    if (int(num) <= (10 ** int(width) - 1)):
+        tmpstring = "%d" % num
+    elif (int(num) <= 1024 * 1024):
+        tmpstring = "%dm" % (int(num) / 1024)
+    elif (int(num) <= 1024 * 1024 * 1024):
+        tmpstring = "%dg" % (int(num) / (1024 * 1024))
+
+    return tmpstring
+
+
 def main(argv):
     """ The main top entry point and loop."""
 
@@ -222,6 +238,7 @@ def main(argv):
     print get_all_process()
     print get_sys_loads()
     print get_memswap_info()
+    print scale_num(1024, 4, size)
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
