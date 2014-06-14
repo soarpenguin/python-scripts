@@ -112,25 +112,25 @@ def get_cpu_info():
 
 def fmttime(seconds):
     """ format seconds to string like: '12days, 01:12' """
-    tmpstring=""
+    result=""
     if not str(seconds).isdigit():
-        return tmpstring
+        return result
 
     day = int(seconds) / ((24 * 60 * 60))
     hour = int(seconds) / (60 * 60) % 24
     minuter = int(seconds) / 60 % 60
 
     if day > 1:
-        tmpstring += "%s days, " % day
+        result += "%s days, " % day
     else: 
-        tmpstring += "%s day, " % day
+        result += "%s day, " % day
 
     if hour > 0:
-        tmpstring += "%02d:%02d" % (hour, minuter)
+        result += "%02d:%02d" % (hour, minuter)
     else:
-        tmpstring += "%02d min" % min
+        result += "%02d min" % min
 
-    return tmpstring
+    return result
 
 
 def fmtshare(share, pagesize):
@@ -139,18 +139,18 @@ def fmtshare(share, pagesize):
         return "?"
 
     share = int(share) * (int(pagesize) >> 10)
-    tmpstring = ""
+    result = ""
 
     if (int(share) <= 9999):
-        tmpstring = "%d" % share
+        result = "%d" % share
     elif (int(share) <= 2 << 20):
-        tmpstring = "%dm" % (int(share) >> 10)
+        result = "%dm" % (int(share) >> 10)
     elif (int(share) <= 2 << 30):
-        tmpstring = "%dg" % (int(share) >> 20)
+        result = "%dg" % (int(share) >> 20)
     else:
-        tmpstring = "?"
+        result = "?"
 
-    return tmpstring
+    return result
 
 
 def get_all_process():
@@ -211,16 +211,26 @@ def scale_num(num, width, pagesize):
     """ format number to fit width. """
 
     num = int(num) * (int(pagesize) >> 10)
-    tmpstring = "?"
+    result = "?"
 
     if (int(num) <= (10 ** int(width) - 1)):
-        tmpstring = "%d" % num
+        result = "%d" % num
     elif (int(num) <= 1024 * 1024):
-        tmpstring = "%dm" % (int(num) / 1024)
+        result = "%dm" % (int(num) / 1024)
     elif (int(num) <= 1024 * 1024 * 1024):
-        tmpstring = "%dg" % (int(num) / (1024 * 1024))
+        result = "%dg" % (int(num) / (1024 * 1024))
 
-    return tmpstring
+    return result
+
+
+def fmt_mem_percent(mem, memtotal, pagesize):
+    """ format memory num to percent. """
+
+    result = "0"
+    if str(mem).isdigit() and str(memtotal).isdigit():
+        result = "%.1f" % (int(mem)*int(pagesize)/1024*100/int(memtotal))
+
+    return result
 
 
 def main(argv):
@@ -239,6 +249,7 @@ def main(argv):
     print get_sys_loads()
     print get_memswap_info()
     print scale_num(1024, 4, size)
+    print fmt_mem_percent(1024, 4096, size)
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
