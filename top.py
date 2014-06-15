@@ -11,6 +11,7 @@ import os
 from optparse import OptionParser
 from terminal import *
 import curses, traceback
+import fcntl
 
 
 def read_uptime():
@@ -233,6 +234,44 @@ def fmt_mem_percent(mem, memtotal, pagesize):
     return result
 
 
+def set_fd_nonblocking(fd):
+    """ set fd nonblocking. """
+
+    if not fd:
+        return -1
+
+    flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+    fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+
+def print_help():
+    print """
+Help for Interactive Commands - $script version $myversion
+Window 1:Def: Cumulative mode Off.  System: Delay 3.0 secs; Secure mode Off.
+
+  Z,B       Global: 'Z' change color mappings; 'B' disable/enable bold
+  l,t,m     Toggle Summaries: 'l' load avg; 't' task/cpu stats; 'm' mem info
+  1,I       Toggle SMP view: '1' single/separate states; 'I' Irix/Solaris mode
+
+  f,o     . Fields/Columns: 'f' add or remove; 'o' change display order
+  F or O  . Select sort field
+  <,>     . Move sort field: '<' next col left; '>' next col right
+  R,H     . Toggle: 'R' normal/reverse sort; 'H' show threads
+  c,i,S   . Toggle: 'c' cmd name/line; 'i' idle tasks; 'S' cumulative time
+  x,y     . Toggle highlights: 'x' sort field; 'y' running tasks
+  z,b     . Toggle: 'z' color/mono; 'b' bold/reverse (only if 'x' or 'y')
+  u       . Show specific user only
+  n or #  . Set maximum tasks displayed
+
+  k,r       Manipulate tasks: 'k' kill; 'r' renice
+  d or s    Set update interval
+  W         Write configuration file
+  q         Quit
+          ( commands shown with '.' require a visible task display window ) 
+Press 'h' or '?' for help with Windows,
+any other key to continue """
+
+
 def main(argv):
     """ The main top entry point and loop."""
 
@@ -250,6 +289,8 @@ def main(argv):
     print get_memswap_info()
     print scale_num(1024, 4, size)
     print fmt_mem_percent(1024, 4096, size)
+    print_help()
+    set_fd_nonblocking(sys.stdout)
     try:
         curses.initscr()
         screen=curses.newwin(80, 74, 0, 0)
