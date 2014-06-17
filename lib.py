@@ -177,6 +177,11 @@ def errmsg(msg, doc, pos, end=None):
     #return fmt % (msg, lineno, colno, endlineno, endcolno, pos, end)
 
 
+def error_exit(msg, status=1):
+    sys.stderr.write('Error: %s\n' % msg)
+    sys.exit(status)
+
+
 def shutdown():
     print "exit"
 
