@@ -11,6 +11,7 @@ import os
 from optparse import OptionParser
 from terminal import *
 import curses, traceback
+import atexit
 import fcntl
 
 
@@ -292,12 +293,12 @@ def main(argv):
     print_help()
     set_fd_nonblocking(sys.stdout)
     try:
-        screen = curses.initscr()
-        atexit.register(curses.endwin)
+        #screen = curses.initscr()
 
-        #curses.initscr()
-        #screen=curses.newwin(80, 74, 0, 0)
-        screen.box()
+        curses.initscr()
+        atexit.register(curses.endwin)
+        screen=curses.newwin(80, 74, 0, 0)
+        #screen.box()
         #curses.noecho()
         curses.cbreak()
         screen.keypad(1)
