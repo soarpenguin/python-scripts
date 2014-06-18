@@ -292,8 +292,11 @@ def main(argv):
     print_help()
     set_fd_nonblocking(sys.stdout)
     try:
-        curses.initscr()
-        screen=curses.newwin(80, 74, 0, 0)
+        screen = curses.initscr()
+        atexit.register(curses.endwin)
+
+        #curses.initscr()
+        #screen=curses.newwin(80, 74, 0, 0)
         screen.box()
         #curses.noecho()
         curses.cbreak()
