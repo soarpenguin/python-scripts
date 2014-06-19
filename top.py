@@ -13,6 +13,7 @@ from terminal import *
 import curses, traceback
 import atexit
 import fcntl
+from time import gmtime, strftime
 
 
 def read_uptime():
@@ -245,8 +246,8 @@ def set_fd_nonblocking(fd):
     fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
 
-def print_help():
-    print """
+def usage():
+    usage = """
 Help for Interactive Commands - $script version $myversion
 Window 1:Def: Cumulative mode Off.  System: Delay 3.0 secs; Secure mode Off.
 
@@ -271,6 +272,17 @@ Window 1:Def: Cumulative mode Off.  System: Delay 3.0 secs; Secure mode Off.
           ( commands shown with '.' require a visible task display window ) 
 Press 'h' or '?' for help with Windows,
 any other key to continue """
+    return usage
+
+
+def header():
+    now = strftime("%H:%M:%S", gmtime()) 
+    uptime = read_uptime()[0]
+    #uptime = fmttime(read_uptime()[0])
+    (sysload1, sysload5, sysload15) = get_sys_loads()
+    head = "%5s - %8s up %5s, %2d users,  load average: %3s, %3s, %3s\n" % ("top.py", now, uptime, 3, sysload1, sysload5, sysload15)
+    ## $uptime
+    return head
 
 
 def main(argv):
@@ -279,40 +291,51 @@ def main(argv):
     options, args = parse_cmdline(argv)
     #clrscr()
     size = getpagesize()
-    print size
-    print fmttime(3600)
+    #print size
+    #print fmttime(3600)
     cpus = get_cpu_info()
     #for elem in cpus:
     #    for key in elem.keys():
     #        print "%s => %s" % (key, elem.get(key))
-    print get_all_process()
-    print get_sys_loads()
-    print get_memswap_info()
-    print scale_num(1024, 4, size)
-    print fmt_mem_percent(1024, 4096, size)
-    print_help()
-    set_fd_nonblocking(sys.stdout)
+    #print get_all_process()
+    #print get_sys_loads()
+    #print get_memswap_info()
+    #print scale_num(1024, 4, size)
+    #print fmt_mem_percent(1024, 4096, size)
+    #usage()
+    #set_fd_nonblocking(sys.stdout)
     try:
-        #screen = curses.initscr()
-
-        curses.initscr()
+        screen = curses.initscr()
         atexit.register(curses.endwin)
-        screen=curses.newwin(80, 74, 0, 0)
-        #screen.box()
-        #curses.noecho()
-        curses.cbreak()
+
+        curses.noecho()
+        curses.curs_set(0)
         screen.keypad(1)
+        #curses.cbreak()
         #screen.clear()
-        height,width=screen.getmaxyx()
         screen.addstr(0, 0, "screen", curses.A_BLINK)
-        screen.refresh()
+
+        height,width=screen.getmaxyx()
+        screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
+
+        while True:
+            event = screen.getch()
+            if event == ord("q"): 
+                break
+            elif event == ord("h") or event == ord("?"):
+                screen.addstr(0, 0, usage())
+                screen.refresh()
+            #else:
+                #screen.clear()
+            screen.addstr(0, 0, header())
 
         curses.nocbreak()
         screen.keypad(0)
         curses.echo()
     except:
         curses.nocbreak()
-        screen.keypad(0)
+        if screen:
+            screen.keypad(0)
         curses.echo()
         traceback.print_exc() 
     finally:
