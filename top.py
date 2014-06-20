@@ -13,7 +13,9 @@ from terminal import *
 import curses, traceback
 import atexit
 import fcntl
-from time import gmtime, strftime
+import time
+
+NUMREGX = re.compile(r'^(-{0,1}|\+{0,1})[0-9]+(\.{0,1}[0-9]+)$')
 
 
 def read_uptime():
@@ -116,17 +118,17 @@ def get_cpu_info():
 def fmttime(seconds):
     """ format seconds to string like: '12days, 01:12' """
     result=""
-    if not str(seconds).isdigit():
+    if not NUMREGX.match(str(seconds)):
         return result
 
-    day = int(seconds) / ((24 * 60 * 60))
-    hour = int(seconds) / (60 * 60) % 24
-    minuter = int(seconds) / 60 % 60
+    day = float(seconds) / ((24 * 60 * 60))
+    hour = float(seconds) / (60 * 60) % 24
+    minuter = float(seconds) / 60 % 60
 
     if day > 1:
-        result += "%s days, " % day
+        result += "%d days, " % day
     else: 
-        result += "%s day, " % day
+        result += "%d day, " % day
 
     if hour > 0:
         result += "%02d:%02d" % (hour, minuter)
@@ -138,7 +140,7 @@ def fmttime(seconds):
 
 def fmtshare(share, pagesize):
     """ format share size """
-    if (not str(share).isdigit()) or (not str(pagesize).isdigit()):
+    if ( not NUMREGX.match(str(seconds)) ) or ( not NUMREGX.match(str(pagesize)) ):
         return "?"
 
     share = int(share) * (int(pagesize) >> 10)
@@ -230,7 +232,7 @@ def fmt_mem_percent(mem, memtotal, pagesize):
     """ format memory num to percent. """
 
     result = "0"
-    if str(mem).isdigit() and str(memtotal).isdigit():
+    if NUMREGX.match(str(mem)) and NUMREGX.match(str(memtotal)):
         result = "%.1f" % (int(mem)*int(pagesize)/1024*100/int(memtotal))
 
     return result
@@ -276,11 +278,11 @@ any other key to continue """
 
 
 def header():
-    now = strftime("%H:%M:%S", gmtime()) 
+    now = time.strftime("%H:%M:%S", time.localtime()) 
     uptime = read_uptime()[0]
     #uptime = fmttime(read_uptime()[0])
     (sysload1, sysload5, sysload15) = get_sys_loads()
-    head = "%5s - %8s up %5s, %2d users,  load average: %3s, %3s, %3s\n" % ("top.py", now, uptime, 3, sysload1, sysload5, sysload15)
+    head = "%5s - %8s up %5s, %2d users,  load average: %3s, %3s, %3s\n" % ("top.py", now, fmttime(uptime), 3, sysload1, sysload5, sysload15)
     ## $uptime
     return head
 
