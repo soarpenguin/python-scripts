@@ -314,6 +314,7 @@ def main(argv):
     """ The main top entry point and loop."""
 
     options, args = parse_cmdline(argv)
+    delay = 3
     #clrscr()
     size = getpagesize()
     #print size
@@ -346,20 +347,25 @@ def main(argv):
         screen.addstr(0, 0, "screen", curses.A_BLINK)
 
         height,width = screen.getmaxyx()
-        screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
+        #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
 
         while True:
+            screen.timeout(0)
+            processes = get_all_process()
+            memory = get_memswap_info()
+            screen.addstr(0, 0, header(processes, memory))
+            screen.addstr(5, 0, "\n")
+
             event = screen.getch()
             if event == ord("q"): 
                 break
             elif event == ord("h") or event == ord("?"):
+                screen.timeout(-1)
+                screen.clear()
                 screen.addstr(0, 0, usage())
                 screen.refresh()
-            #else:
-                #screen.clear()
-            processes = get_all_process()
-            memory = get_memswap_info()
-            screen.addstr(0, 0, header(processes, memory))
+
+            time.sleep(delay)
 
         curses.nocbreak()
         screen.keypad(0)
