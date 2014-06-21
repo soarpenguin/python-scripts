@@ -250,7 +250,7 @@ def set_fd_nonblocking(fd):
 
 def usage():
     usage = """
-Help for Interactive Commands - $script version $myversion
+Help for Interactive Commands - top.py version 1.0.0.0
 Window 1:Def: Cumulative mode Off.  System: Delay 3.0 secs; Secure mode Off.
 
   Z,B       Global: 'Z' change color mappings; 'B' disable/enable bold
@@ -277,13 +277,36 @@ any other key to continue """
     return usage
 
 
-def header():
+def header(processes, memory):
+    """ return string of top header. """
+
     now = time.strftime("%H:%M:%S", time.localtime()) 
     uptime = read_uptime()[0]
     #uptime = fmttime(read_uptime()[0])
     (sysload1, sysload5, sysload15) = get_sys_loads()
+
+    total = len(processes)
+    running = 0; sleeping = 0; stoped = 0; zombie = 0;
+
+    cpus = get_cpu_info()
+    us = float(cpus[0].get("u"))
+    sy = float(cpus[0].get("s"))
+    ni = float(cpus[0].get("n"))
+    idle = float(cpus[0].get("i"))
+    wa = float(cpus[0].get("w"))
+    summary = us + sy + ni + idle + wa
+    scale = 100.0 / summary
+
+    (memtotal, memfree, buf, cache, swaptotal, swapfree) = memory[0:]
+    memused = int(memtotal) - int(memfree)
+    swapused = int(swaptotal) - int(swapfree)
+
     head = "%5s - %8s up %5s, %2d users,  load average: %3s, %3s, %3s\n" % ("top.py", now, fmttime(uptime), 3, sysload1, sysload5, sysload15)
-    ## $uptime
+    head = head + "Tasks: %3d total,   %2d running, %3d sleeping, %3d stopped, %2d zombie\n" % (total, running, sleeping, stoped, zombie)
+    head = head + "Cpu(s):  %2.1f%%us, %2.1f%%sy, %2.1f%%ni, %2.1f%%id, %2.1f%%wa, 0.0%%hi, 0.0%%si, 0.0%%st\n" % (us*scale, sy*scale, ni*scale, idle*scale, wa*scale)
+    head = head + "Mem:  %8sk total, %8sk used, %8sk free, %8sk buffers\n" % (memtotal, memused, memfree, buf)
+    head = head + "Swap: %8sk total, %8sk used, %8sk free, %8sk cached\n" % (swaptotal, swapused, swapfree, cache)
+
     return head
 
 
@@ -306,8 +329,13 @@ def main(argv):
     #print fmt_mem_percent(1024, 4096, size)
     #usage()
     #set_fd_nonblocking(sys.stdout)
+    processes = get_all_process()
+    memory = get_memswap_info()
+    print header(processes, memory)
+
     try:
         screen = curses.initscr()
+        #curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
         atexit.register(curses.endwin)
 
         curses.noecho()
@@ -317,7 +345,7 @@ def main(argv):
         #screen.clear()
         screen.addstr(0, 0, "screen", curses.A_BLINK)
 
-        height,width=screen.getmaxyx()
+        height,width = screen.getmaxyx()
         screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
 
         while True:
@@ -329,7 +357,9 @@ def main(argv):
                 screen.refresh()
             #else:
                 #screen.clear()
-            screen.addstr(0, 0, header())
+            processes = get_all_process()
+            memory = get_memswap_info()
+            screen.addstr(0, 0, header(processes, memory))
 
         curses.nocbreak()
         screen.keypad(0)
