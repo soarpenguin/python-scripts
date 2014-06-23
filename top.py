@@ -116,6 +116,16 @@ def get_cpu_info():
     return cpus
 
 
+PROC_T = (
+    "pid", "cmd", "state", "ppid", "pgrp", "session", "tty", "tpgid", "flags",
+    "min_flt", "cmin_flt", "maj_flt", "cmaj_flt", "utime", "stime", "cutime",
+    "cstime", "priority", "nice", "timeout", "it_real_value", "start_time",
+    "vsize", "rss", "rss_rlim", "start_code", "end_code", "start_stack", 
+    "kstk_esp", "kstk_eip", "signal", "blocked", "sigignore", "sigcatch",
+    "wchan", "nswap", "cnswap", "exit_signal", "processor", "rtprio", "sched"
+)
+
+
 def fmttime(seconds):
     """ format seconds to string like: '12days, 01:12' """
     result=""
@@ -345,7 +355,7 @@ def main(argv):
         screen.keypad(1)
         #curses.cbreak()
         #screen.clear()
-        screen.addstr(0, 0, "screen", curses.A_BLINK)
+        #screen.addstr(0, 0, "screen", curses.A_BLINK)
 
         height,width = screen.getmaxyx()
         #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
