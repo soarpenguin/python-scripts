@@ -124,6 +124,21 @@ PROC_T = (
     "kstk_esp", "kstk_eip", "signal", "blocked", "sigignore", "sigcatch",
     "wchan", "nswap", "cnswap", "exit_signal", "processor", "rtprio", "sched"
 )
+def get_process_stat(proc_id):
+    """ get process stat from /proc/#/stat. """
+    if not str(proc_id).isdigit():
+        return None
+
+    STAT = "/proc/" + proc_id + "/stat"
+    try:
+        f_stat = open(STAT, "r")
+    except IOError, e:
+        return None
+
+    stats = f_stat.readline().split(None)
+    proc_t = dict(zip(PROC_T, stats[0:]))
+
+    return proc_t;
 
 
 def fmttime(seconds):
@@ -344,6 +359,10 @@ def main(argv):
     processes = get_all_process()
     memory = get_memswap_info()
     print header(processes, memory)
+
+    #stats = get_process_stat("1")
+    #for key in stats.keys():
+    #    print "%s => %s" % (key, stats.get(key))
 
     try:
         screen = curses.initscr()
