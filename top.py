@@ -138,6 +138,8 @@ def get_process_stat(proc_id):
     stats = f_stat.readline().split(None)
     proc_t = dict(zip(PROC_T, stats[0:]))
 
+    proc_t["cmd"] = re.sub('[()]', '', proc_t["cmd"])
+
     return proc_t;
 
 
@@ -360,9 +362,9 @@ def main(argv):
     memory = get_memswap_info()
     print header(processes, memory)
 
-    #stats = get_process_stat("1")
-    #for key in stats.keys():
-    #    print "%s => %s" % (key, stats.get(key))
+    stats = get_process_stat("1")
+    for key in stats.keys():
+        print "%s => %s" % (key, stats.get(key))
 
     try:
         screen = curses.initscr()
