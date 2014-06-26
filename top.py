@@ -122,7 +122,9 @@ PROC_T = (
     "cstime", "priority", "nice", "timeout", "it_real_value", "start_time",
     "vsize", "rss", "rss_rlim", "start_code", "end_code", "start_stack", 
     "kstk_esp", "kstk_eip", "signal", "blocked", "sigignore", "sigcatch",
-    "wchan", "nswap", "cnswap", "exit_signal", "processor", "rtprio", "sched"
+    "wchan", "nswap", "cnswap", "exit_signal", "processor", "rtprio", "sched",
+    "ruid", "euid", "suid", "fuid", "rgid", "egid", "sgid", "fgid", "vm_size",
+    "vm_lock", "vm_rss", "vm_data", "vm_stack", "vm_exe", "vm_lib"
 )
 def get_process_stat(proc_id):
     """ get process stat from /proc/#/stat. """
@@ -139,6 +141,40 @@ def get_process_stat(proc_id):
     proc_t = dict(zip(PROC_T, stats[0:]))
 
     proc_t["cmd"] = re.sub('[()]', '', proc_t["cmd"])
+
+    if int(proc_t["tty"]) == 0:
+        proc_t["tty"] = -1
+
+    if int(proc_t["priority"]) < 0:
+        proc_t["priority"] = "RT"
+
+    STATUS = "/proc/" + proc_id + "/status"
+    print STATUS
+    try:
+        f_status = open(STATUS, "r")
+    except IOError, e:
+        return proc_t
+
+    for line in f_status:
+        print line
+        if re.match("uid:", line, re.I):
+            (proc_t["ruid"],proc_t["euid"],proc_t["suid"],proc_t["fuid"]) = line.split(None)[1:]
+        elif re.match("Gid:", line, re.I):
+            (proc_t["rgid"],proc_t["egid"],proc_t["sgid"],proc_t["fgid"]) = line.split(None)[1:]
+        elif re.match("VmSize:", line, re.I):
+            (proc_t["vm_size"]) = line.split(None)[1]
+        elif re.match("VmLck", line, re.I):
+            (proc_t["vm_lock"]) = line.split(None)[1]
+        elif re.match("VmRss", line, re.I):
+            (proc_t["vm_rss"]) = line.split(None)[1]
+        elif re.match("VmData:", line, re.I):
+            (proc_t["vm_data"]) = line.split(None)[1]
+        elif re.match("VmStk:", line, re.I):
+            (proc_t["vm_stack"]) = line.split(None)[1]
+        elif re.match("VmExe:", line, re.I):
+            (proc_t["vm_exe"]) = line.split(None)[1]
+        elif re.match("VmLib:", line, re.I):
+            (proc_t["vm_lib"]) = line.split(None)[1]
 
     return proc_t;
 
@@ -365,6 +401,7 @@ def main(argv):
     stats = get_process_stat("1")
     for key in stats.keys():
         print "%s => %s" % (key, stats.get(key))
+    sys.exit(0)
 
     try:
         screen = curses.initscr()
