@@ -134,49 +134,63 @@ def get_process_stat(proc_id):
     STAT = "/proc/" + proc_id + "/stat"
     try:
         f_stat = open(STAT, "r")
+
+        stats = f_stat.readline().split(None)
+        proc_t = dict(zip(PROC_T, stats[0:]))
+        proc_t["cmd"] = re.sub('[()]', '', proc_t["cmd"])
+
+        if int(proc_t["tty"]) == 0:
+            proc_t["tty"] = -1
+        if int(proc_t["priority"]) < 0:
+            proc_t["priority"] = "RT"
     except IOError, e:
         return None
+    finally:
+        f_stat.close()
 
-    stats = f_stat.readline().split(None)
-    proc_t = dict(zip(PROC_T, stats[0:]))
-
-    proc_t["cmd"] = re.sub('[()]', '', proc_t["cmd"])
-
-    if int(proc_t["tty"]) == 0:
-        proc_t["tty"] = -1
-
-    if int(proc_t["priority"]) < 0:
-        proc_t["priority"] = "RT"
 
     STATUS = "/proc/" + proc_id + "/status"
-    print STATUS
     try:
         f_status = open(STATUS, "r")
+
+        for line in f_status:
+            if re.match("uid:", line, re.I):
+                (proc_t["ruid"],proc_t["euid"],proc_t["suid"],proc_t["fuid"])\
+                    = line.split(None)[1:]
+            elif re.match("Gid:", line, re.I):
+                (proc_t["rgid"],proc_t["egid"],proc_t["sgid"],proc_t["fgid"])\
+                    = line.split(None)[1:]
+            elif re.match("VmSize:", line, re.I):
+                (proc_t["vm_size"]) = line.split(None)[1]
+            elif re.match("VmLck", line, re.I):
+                (proc_t["vm_lock"]) = line.split(None)[1]
+            elif re.match("VmRss", line, re.I):
+                (proc_t["vm_rss"]) = line.split(None)[1]
+            elif re.match("VmData:", line, re.I):
+                (proc_t["vm_data"]) = line.split(None)[1]
+            elif re.match("VmStk:", line, re.I):
+                (proc_t["vm_stack"]) = line.split(None)[1]
+            elif re.match("VmExe:", line, re.I):
+                (proc_t["vm_exe"]) = line.split(None)[1]
+            elif re.match("VmLib:", line, re.I):
+                (proc_t["vm_lib"]) = line.split(None)[1]
     except IOError, e:
         return proc_t
+    finally:
+        f_status.close()
 
-    for line in f_status:
-        print line
-        if re.match("uid:", line, re.I):
-            (proc_t["ruid"],proc_t["euid"],proc_t["suid"],proc_t["fuid"]) = line.split(None)[1:]
-        elif re.match("Gid:", line, re.I):
-            (proc_t["rgid"],proc_t["egid"],proc_t["sgid"],proc_t["fgid"]) = line.split(None)[1:]
-        elif re.match("VmSize:", line, re.I):
-            (proc_t["vm_size"]) = line.split(None)[1]
-        elif re.match("VmLck", line, re.I):
-            (proc_t["vm_lock"]) = line.split(None)[1]
-        elif re.match("VmRss", line, re.I):
-            (proc_t["vm_rss"]) = line.split(None)[1]
-        elif re.match("VmData:", line, re.I):
-            (proc_t["vm_data"]) = line.split(None)[1]
-        elif re.match("VmStk:", line, re.I):
-            (proc_t["vm_stack"]) = line.split(None)[1]
-        elif re.match("VmExe:", line, re.I):
-            (proc_t["vm_exe"]) = line.split(None)[1]
-        elif re.match("VmLib:", line, re.I):
-            (proc_t["vm_lib"]) = line.split(None)[1]
+    STATM = "/proc/" + proc_id + "/statm"
+    try:
+        f_statm = open(STATM, "r")
+        (proc_t["size"],proc_t["resident"],proc_t["share"],\
+         proc_t["trs"],proc_t["lrs"],proc_t["drs"],proc_t["dt"]) \
+           = f_statm.readline().split(None)
+    except IOError, e:
+        return proc_t
+    finally:
+        f_statm.close()
 
-    return proc_t;
+    return proc_t
 
 
 def fmttime(seconds):
@@ -204,7 +218,8 @@ def fmttime(seconds):
 
 def fmtshare(share, pagesize):
     """ format share size """
-    if ( not NUMREGX.match(str(seconds)) ) or ( not NUMREGX.match(str(pagesize)) ):
+    if ( not NUMREGX.match(str(seconds)) )\
+            or ( not NUMREGX.match(str(pagesize)) ):
         return "?"
 
     share = int(share) * (int(pagesize) >> 10)
@@ -365,11 +380,16 @@ def header(processes, memory):
     memused = int(memtotal) - int(memfree)
     swapused = int(swaptotal) - int(swapfree)
 
-    head = "%5s - %8s up %5s, %2d users,  load average: %3s, %3s, %3s\n" % ("top.py", now, fmttime(uptime), 3, sysload1, sysload5, sysload15)
-    head = head + "Tasks: %3d total,   %2d running, %3d sleeping, %3d stopped, %2d zombie\n" % (total, running, sleeping, stoped, zombie)
-    head = head + "Cpu(s):  %2.1f%%us, %2.1f%%sy, %2.1f%%ni, %2.1f%%id, %2.1f%%wa, 0.0%%hi, 0.0%%si, 0.0%%st\n" % (us*scale, sy*scale, ni*scale, idle*scale, wa*scale)
-    head = head + "Mem:  %8sk total, %8sk used, %8sk free, %8sk buffers\n" % (memtotal, memused, memfree, buf)
-    head = head + "Swap: %8sk total, %8sk used, %8sk free, %8sk cached\n" % (swaptotal, swapused, swapfree, cache)
+    head = "%5s - %8s up %5s, %2d users,  load average: %3s, %3s, %3s\n" \
+        % ("top.py", now, fmttime(uptime), 3, sysload1, sysload5, sysload15)
+    head = head + "Tasks: %3d total,   %2d running, %3d sleeping, %3d stopped, %2d zombie\n" \
+        % (total, running, sleeping, stoped, zombie)
+    head = head + "Cpu(s):  %2.1f%%us, %2.1f%%sy, %2.1f%%ni, %2.1f%%id, %2.1f%%wa, 0.0%%hi, 0.0%%si, 0.0%%st\n" \
+        % (us*scale, sy*scale, ni*scale, idle*scale, wa*scale)
+    head = head + "Mem:  %8sk total, %8sk used, %8sk free, %8sk buffers\n" \
+        % (memtotal, memused, memfree, buf)
+    head = head + "Swap: %8sk total, %8sk used, %8sk free, %8sk cached\n" \
+        % (swaptotal, swapused, swapfree, cache)
 
     return head
 
