@@ -128,13 +128,15 @@ PROC_T = (
 )
 def get_process_stat(proc_id):
     """ get process stat from /proc/#/stat. """
+    import pwd
+    import grp
+
     if not str(proc_id).isdigit():
         return None
 
     STAT = "/proc/" + proc_id + "/stat"
     try:
         f_stat = open(STAT, "r")
-
         stats = f_stat.readline().split(None)
         proc_t = dict(zip(PROC_T, stats[0:]))
         proc_t["cmd"] = re.sub('[()]', '', proc_t["cmd"])
@@ -148,11 +150,9 @@ def get_process_stat(proc_id):
     finally:
         f_stat.close()
 
-
     STATUS = "/proc/" + proc_id + "/status"
     try:
         f_status = open(STATUS, "r")
-
         for line in f_status:
             if re.match("uid:", line, re.I):
                 (proc_t["ruid"],proc_t["euid"],proc_t["suid"],proc_t["fuid"])\
@@ -178,17 +178,41 @@ def get_process_stat(proc_id):
         return proc_t
     finally:
         f_status.close()
+    proc_t["euser"] = pwd.getpwuid(int(proc_t["euid"]))[0]
+    proc_t["ruser"] = pwd.getpwuid(int(proc_t["ruid"]))[0]
+    proc_t["suser"] = pwd.getpwuid(int(proc_t["suid"]))[0]
+    proc_t["egroup"] = grp.getgrgid(int(proc_t["egid"]))[0]
+    proc_t["rgroup"] = grp.getgrgid(int(proc_t["rgid"]))[0]
+    proc_t["fgroup"] = grp.getgrgid(int(proc_t["fgid"]))[0]
+    if proc_t["state"] == "Z":
+        proc_t["cmd"] += " <defunct>"
 
     STATM = "/proc/" + proc_id + "/statm"
     try:
         f_statm = open(STATM, "r")
         (proc_t["size"],proc_t["resident"],proc_t["share"],\
-         proc_t["trs"],proc_t["lrs"],proc_t["drs"],proc_t["dt"]) \
+         proc_t["trs"],proc_t["lrs"],proc_t["drs"],proc_t["dt"])\
            = f_statm.readline().split(None)
     except IOError, e:
         return proc_t
     finally:
         f_statm.close()
+
+    CMDLINE = "/proc/" + proc_id + "/cmdline"
+    try:
+        f_cmdline = open(CMDLINE, "r")
+        proc_t["cmdline"] = f_cmdline.readline()
+    except IOError, e:
+        return proc_t
+    finally:
+        f_cmdline.close()
+
+    ENVIRON = "/proc/" + proc_id + "/environ" 
+    try:
+        f_environ = open(ENVIRON, "r")
+        proc_t["environ"] = f_environ.readline()
+    except IOError, e:
+        return proc_t
 
     return proc_t
 
