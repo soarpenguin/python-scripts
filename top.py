@@ -131,8 +131,10 @@ def get_process_stat(proc_id):
     import pwd
     import grp
 
-    if not str(proc_id).isdigit():
-        return None
+    proc_t = {}
+    if not str(proc_id).isdigit() or\
+       not os.path.exists("/proc/" + proc_id):
+        return proc_t
 
     STAT = "/proc/" + proc_id + "/stat"
     try:
@@ -146,7 +148,7 @@ def get_process_stat(proc_id):
         if int(proc_t["priority"]) < 0:
             proc_t["priority"] = "RT"
     except IOError, e:
-        return None
+        return proc_t
     finally:
         f_stat.close()
 
