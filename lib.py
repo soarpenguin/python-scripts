@@ -10,6 +10,7 @@ from sys import stderr
 import stat
 import errno
 import time
+import subprocess
 
 def _parse_args(args):
     dargs = {
@@ -184,6 +185,27 @@ def error_exit(msg, status=1):
 
 def shutdown():
     print "exit"
+
+
+def exec_cmd(cmd_list, retry_times=1, retry_interval_sec=0):
+    ret = 0
+    output = None
+
+    cmd.extend(cmd_list)
+    #cmd.append("--cluster=%s" % cluster_id)
+
+    while retry_times > 0:
+        try:
+            output = subprocess.check_output(cmd)
+            output = output.rstrip()
+            break
+        except subprocess.CalledProcessError, er:
+            ret = er.returncode
+            output = None
+            retry_times-=1
+            if retry_interval_sec > 0: time.sleep(retry_interval_sec)
+
+    return (ret, output)
 
 if __name__ == '__main__':
     var_list = VarList()
