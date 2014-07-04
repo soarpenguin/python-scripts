@@ -207,6 +207,15 @@ def exec_cmd(cmd_list, retry_times=1, retry_interval_sec=0):
 
     return (ret, output)
 
+
+def unique(old_list):
+    new_list = []
+    for x in old_list:
+        if x not in new_list :
+            new_list.append(x)
+    return new_list
+
+
 if __name__ == '__main__':
     var_list = VarList()
     var_list.append("name")
