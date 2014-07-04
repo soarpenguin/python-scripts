@@ -353,6 +353,17 @@ def set_fd_nonblocking(fd):
     fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
 
+def get_all_user():
+    """ get user of system """
+    import pwd
+
+    all_user = {}
+    for user in pwd.getpwall():
+        all_user[user[0]] = all_user[user[2]] = user
+
+    return all_user
+
+
 def usage():
     usage = """
 Help for Interactive Commands - top.py version 1.0.0.0
@@ -447,6 +458,8 @@ def main(argv):
     stats = get_process_stat("1")
     for key in stats.keys():
         print "%s => %s" % (key, stats.get(key))
+
+    all_user = get_user()
     sys.exit(0)
 
     try:
