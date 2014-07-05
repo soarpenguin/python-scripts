@@ -11,6 +11,38 @@ import stat
 import errno
 import time
 import subprocess
+import threading
+
+
+try:
+    import queue
+except ImportError: # Python 2
+    import Queue as queue
+
+
+class ListenGetch(threading.Thread):
+
+    def __init__(self, nom=''):
+        threading.Thread.__init__(self)
+        self.Terminated = False
+        self.q = queue.Queue()
+
+    def run(self):
+        while not self.Terminated:
+            char = msvcrt.getch()
+            self.q.put(char)
+
+    def stop(self):
+        self.Terminated = True
+        while not self.q.empty():
+            self.q.get()
+
+    def get(self, default=None):
+        try:
+            return ord(self.q.get_nowait())
+        except Exception:
+            return default
+
 
 def _parse_args(args):
     dargs = {
