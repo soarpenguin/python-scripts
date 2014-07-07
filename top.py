@@ -147,6 +147,8 @@ def get_process_stat(proc_id):
             proc_t["tty"] = -1
         if int(proc_t["priority"]) < 0:
             proc_t["priority"] = "RT"
+        proc_t["pcpu"] = int(proc_t["utime"]) + int(proc_t["stime"])
+        proc_t["tics"] = int(proc_t["utime"]) + int(proc_t["stime"])
     except IOError, e:
         return proc_t
     finally:
@@ -455,11 +457,21 @@ def main(argv):
     memory = get_memswap_info()
     print header(processes, memory)
 
-    stats = get_process_stat("1")
-    for key in stats.keys():
-        print "%s => %s" % (key, stats.get(key))
+    processes = get_all_process()
+    proc_list = list()
+    for item in processes:
+        proc_t = get_process_stat(item)
+        proc_list.append(proc_t)
 
-    all_user = get_user()
+    new_proc_list = sorted(proc_list, key=lambda k: k['pcpu'], reverse=True)
+    for item in new_proc_list:
+        print "%s =>  %s:%s  %s: %s" % (item.get("pid"), item.get("utime"), item.get("stime"), "pcpu", item.get('pcpu'))
+
+    #stats = get_process_stat("1")
+    #for key in stats.keys():
+    #    print "%s => %s" % (key, stats.get(key))
+
+    #all_user = get_all_user()
     sys.exit(0)
 
     try:
