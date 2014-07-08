@@ -465,7 +465,8 @@ def main(argv):
 
     new_proc_list = sorted(proc_list, key=lambda k: k['pcpu'], reverse=True)
     for item in new_proc_list:
-        print "%s =>  %s:%s  %s: %s" % (item.get("pid"), item.get("utime"), item.get("stime"), "pcpu", item.get('pcpu'))
+        print "%s =>  %s:%s  %s: %s" % (item.get("pid"), item.get("utime"),\
+                item.get("stime"), "pcpu", item.get('pcpu'))
 
     #stats = get_process_stat("1")
     #for key in stats.keys():

@@ -12,7 +12,12 @@ import errno
 import time
 import subprocess
 import threading
+import struct
 
+
+import os.path
+path = os.path.realpath(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(os.path.dirname(path)))
 
 try:
     import queue
