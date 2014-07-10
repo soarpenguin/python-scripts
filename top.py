@@ -432,6 +432,24 @@ def header(processes, memory):
 
     return head
 
+class Timer(object):
+    """The timer class. A simple chronometer."""
+
+    def __init__(self, duration):
+        self.duration = duration
+        self.start()
+
+    def start(self):
+        self.target = time() + self.duration
+
+    def reset(self):
+        self.start()
+
+    def set(self, duration):
+        self.duration = duration
+
+    def finished(self):
+        return time() > self.target
 
 def main(argv):
     """ The main top entry point and loop."""
@@ -457,68 +475,81 @@ def main(argv):
     memory = get_memswap_info()
     print header(processes, memory)
 
-    processes = get_all_process()
-    proc_list = list()
-    for item in processes:
-        proc_t = get_process_stat(item)
-        proc_list.append(proc_t)
+    #processes = get_all_process()
+    #proc_list = list()
+    #for item in processes:
+    #    proc_t = get_process_stat(item)
+    #    proc_list.append(proc_t)
 
-    new_proc_list = sorted(proc_list, key=lambda k: k['pcpu'], reverse=True)
-    for item in new_proc_list:
-        print "%s =>  %s:%s  %s: %s" % (item.get("pid"), item.get("utime"),\
-                item.get("stime"), "pcpu", item.get('pcpu'))
+    #new_proc_list = sorted(proc_list, key=lambda k: k['pcpu'], reverse=True)
+    #for item in new_proc_list:
+    #    print "%s =>  %s:%s  %s: %s" % (item.get("pid"), item.get("utime"),\
+    #            item.get("stime"), "pcpu", item.get('pcpu'))
 
     #stats = get_process_stat("1")
     #for key in stats.keys():
     #    print "%s => %s" % (key, stats.get(key))
 
     #all_user = get_all_user()
-    sys.exit(0)
+    #sys.exit(0)
 
-    try:
-        screen = curses.initscr()
-        #curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        atexit.register(curses.endwin)
+    #try:
+    screen = curses.initscr()
+    #curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    atexit.register(curses.endwin)
 
+    if hasattr(curses, 'noecho'):
         curses.noecho()
-        curses.curs_set(0)
-        screen.keypad(1)
-        #curses.cbreak()
-        #screen.clear()
-        #screen.addstr(0, 0, "screen", curses.A_BLINK)
+    if hasattr(curses, 'cbreak'):
+        curses.cbreak()
+    if hasattr(curses, 'curs_set'):
+        try:
+            curses.curs_set(0)
+        except Exception:
+            pass
 
-        height,width = screen.getmaxyx()
-        #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
+    term_window = screen.subwin(0, 0)
+    term_window.keypad(1)
+    term_window.nodelay(1)
+    #screen.clear()
+    #screen.addstr(0, 0, "screen", curses.A_BLINK)
 
-        while True:
-            screen.timeout(0)
-            processes = get_all_process()
-            memory = get_memswap_info()
-            screen.addstr(0, 0, header(processes, memory))
-            screen.addstr(5, 0, "\n")
+    height,width = screen.getmaxyx()
+    #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
 
-            event = screen.getch()
+    while True:
+        #screen.timeout(0)
+        processes = get_all_process()
+        memory = get_memswap_info()
+        term_window.erase()
+        term_window.addstr(0, 0, header(processes, memory))
+        term_window.addstr(5, 0, "\n")
+
+        coutdown = Timer(delay)
+        while not coutdown.finished():
+            event = term_window.getch()
             if event == ord("q"): 
                 break
             elif event == ord("h") or event == ord("?"):
-                screen.timeout(-1)
-                screen.clear()
-                screen.addstr(0, 0, usage())
-                screen.refresh()
+                term_window.erase()
+                term_window.addstr(0, 0, usage())
 
-            time.sleep(delay)
+            #time.sleep(delay)
+            term_window.addstr(0, 0, header(processes, memory))
+            curses.napms(100)
 
-        curses.nocbreak()
-        screen.keypad(0)
-        curses.echo()
-    except:
-        curses.nocbreak()
-        if screen:
-            screen.keypad(0)
-        curses.echo()
-        traceback.print_exc() 
-    finally:
-        curses.endwin()
+    curses.echo()
+    curses.nocbreak()
+    curses.curs_set(1)
+    curses.endwin()
+    #except:
+    #    curses.nocbreak()
+    #    if screen:
+    #        screen.keypad(0)
+    #    curses.echo()
+    #    traceback.print_exc() 
+    #finally:
+    #    curses.endwin()
 
 
 if __name__ == '__main__':
