@@ -76,7 +76,8 @@ if __name__ == '__main__':
             level[key] = value
 
         jstr["level_order"] = level
-        print json.dumps(jstr, sort_keys=True, indent=4, separators=(',', ': '), encoding='utf-8')
+        print json.dumps(jstr, sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False, encoding='utf-8').encode("gb2312")
+        #print json.dumps(jstr, sort_keys=True, indent=4, separators=(',', ': '), encoding='utf-8')
     except Exception as e:
         print sys.exc_info()
         sys.exit(1)
