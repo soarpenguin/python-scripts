@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 from logging.handlers import RotatingFileHandler
+
+LOG_FILENAME = sys.argv[0] + ".log"
 
 #logging.basicConfig(
 #        level=logging.DEBUG,
@@ -16,11 +19,11 @@ from logging.handlers import RotatingFileHandler
 #logging.info('This is info message')
 #logging.warning('This is warning message')
 
-
+logger = logging.getLogger()
 Rthandler = RotatingFileHandler(
-        'myapp.log', 
+        LOG_FILENAME, 
         mode='a',
-        maxBytes = 10*1024*1024,
+        maxBytes = 10 * 1024 * 1024,
         backupCount=5
     )
 #Rthandler.setLevel(logging.DEBUG)
@@ -29,7 +32,9 @@ formatter = logging.Formatter(
     datefmt = '%F %H:%M:%S'
 )
 Rthandler.setFormatter(formatter)
-logging.getLogger('').addHandler(Rthandler) 
+logger.addHandler(Rthandler) 
+logger.setLevel(logging.DEBUG)
 
-logging.critical("This is a critical message.")
-logging.warning('This is warning message')
+logger.critical("This is a critical message.")
+logger.warning('This is warning message')
+logger.info('This is warning message')
