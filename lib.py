@@ -252,6 +252,22 @@ def unique(old_list):
             new_list.append(x)
     return new_list
 
+import cStringIO, traceback
+#ei = sys.exc_info()
+def formatException(ei):
+    """
+    Format and return the specified exception information as a string.
+
+    This default implementation just uses
+    traceback.print_exception()
+    """
+    sio = cStringIO.StringIO()
+    traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
+    s = sio.getvalue()
+    sio.close()
+    if s[-1:] == "\n":
+        s = s[:-1]
+    return s
 
 if __name__ == '__main__':
     var_list = VarList()
