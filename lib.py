@@ -135,6 +135,30 @@ NUMBER_RE = re.compile(
     r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
     (re.VERBOSE | re.MULTILINE | re.DOTALL))
 
+SYNTAX_GROUP_REGEX = re.compile(
+  r"""^
+      (?P<group_name>\w+)
+      \s+
+      xxx
+      \s+
+      (?P<content>.+?)
+      $""",
+  re.VERBOSE )
+
+KEYWORD_REGEX = re.compile( r'^[\w,]+$' )
+
+SYNTAX_ARGUMENT_REGEX = re.compile(
+  r"^\w+=.*$" )
+
+ROOT_GROUPS = set([
+  'Statement',
+  'Boolean',
+  'Include',
+  'Type',
+])
+#for root_group in ROOT_GROUPS:
+#    print root_group
+
 def read_file(fpath):
     BLOCK_SIZE = 1024
     with open(fpath, 'rb') as f:
