@@ -263,7 +263,7 @@ def exec_cmd(cmd_list, retry_times=1, retry_interval_sec=0):
         except subprocess.CalledProcessError, er:
             ret = er.returncode
             output = None
-            retry_times-=1
+            retry_times -= 1
             if retry_interval_sec > 0: time.sleep(retry_interval_sec)
 
     return (ret, output)
