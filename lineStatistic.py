@@ -5,6 +5,16 @@ import re
 import os
 from optparse import OptionParser
 
+prg_name = sys.argv[0]
+
+RED   = "\x1b[31m"
+GREEN = "\x1b[32m"
+CYAN  = "\x1b[36m"
+WHITE = "\x1b[37m"
+YELLOW = "\x1b[33m"
+BLUE   = "\x1b[34m"
+MAGENTA = "\x1b[35m"
+COL_RESET = "\x1b[0m"
 
 def parse_cmdline(argv):
     """Parses the command-line."""
@@ -16,6 +26,16 @@ def parse_cmdline(argv):
 
     return (options, args)
 
+def error_exit(msg, status=1):
+    #sys.stderr.write('Error: %s\n' % msg)
+    err_msg = "%sError:%s %s\n" % (RED, COL_RESET, msg) 
+    sys.stderr.write(err_msg)
+    sys.exit(status)
+
+def message(msg):
+    final_msg = "%s%s %s\n" % (BLUE, msg, COL_RESET)
+    sys.stdout.write(final_msg)
+
 map = {}
 
 def main(argv):
@@ -23,13 +43,13 @@ def main(argv):
     (options, args) = parse_cmdline(argv)
 
     if not options.file:
-        print("must provide statistic filename.")
-        sys.exit(1)
+        error_exit("Must provide statistic filename, just like: %s -f filename"\
+                % prg_name)
 
     try:
         f_file = open(options.file, "r")
     except IOError, e:
-        sys.exit(1)
+        error_exit("Open the file of \"%s\" failed." % options.file)
 
     for line in f_file:
         if line.strip() in map.keys():
@@ -48,8 +68,8 @@ def main(argv):
         print "%s: %d" % (key, value)
         total += value
 
-    print "++++++++++++++++"
-    print "all: %d" % total
+    message("+" * 50)
+    message("all: %d" % total)
 
 
 if __name__ == '__main__':
