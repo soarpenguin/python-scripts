@@ -15,6 +15,7 @@ import curses, traceback
 import atexit
 import fcntl
 import time
+import signal
 
 NUMREGX = re.compile(r'^(-{0,1}|\+{0,1})[0-9]+(\.{0,1}[0-9]+)$')
 
@@ -432,6 +433,20 @@ def header(processes, memory):
 
     return head
 
+def end():
+    """ Stop top.py and reinit curses."""
+    curses.echo()
+    curses.nocbreak()
+    curses.curs_set(1)
+    curses.endwin()
+    
+    #The end...
+    sys.exit(0)
+
+def signal_handler():
+    """Callback for CTRL-C."""
+    end()
+
 class Timer(object):
     """The timer class. A simple chronometer."""
 
@@ -515,6 +530,7 @@ def main(argv):
     #screen.addstr(0, 0, "screen", curses.A_BLINK)
 
     height,width = screen.getmaxyx()
+    signal.signal(signal.SIGINT, signal_handler)
     #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
 
     while True:
@@ -538,10 +554,7 @@ def main(argv):
             term_window.addstr(0, 0, header(processes, memory))
             curses.napms(100)
 
-    curses.echo()
-    curses.nocbreak()
-    curses.curs_set(1)
-    curses.endwin()
+    end()
     #except:
     #    curses.nocbreak()
     #    if screen:
