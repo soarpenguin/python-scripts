@@ -7,15 +7,14 @@ if sys.hexversion < 0x020700f0:  # hex number for 2.7.0 final release
 
 # Colors (http://en.wikipedia.org/wiki/ANSI_escape_code#Colors)
 
-COL_RESET = "\x1b[0m"
-RED = "\x1b[31m"
+RED   = "\x1b[31m"
 GREEN = "\x1b[32m"
-YELLOW = "\x1b[33m"
-BLUE = "\x1b[34m"
-MAGENTA = "\x1b[35m"
-CYAN = "\x1b[36m"
+CYAN  = "\x1b[36m"
 WHITE = "\x1b[37m"
-
+YELLOW = "\x1b[33m"
+BLUE   = "\x1b[34m"
+MAGENTA = "\x1b[35m"
+COL_RESET = "\x1b[0m"
 
 class PygressBar(object):
     """Progress bar abstract base class"""

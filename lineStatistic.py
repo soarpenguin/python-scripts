@@ -20,9 +20,16 @@ def parse_cmdline(argv):
     """Parses the command-line."""
 
     # get arguments
-    parser = OptionParser(description='statistical script for file.')
+    parser = OptionParser(
+                usage='Usage: %s -f file' % prg_name,
+                description='statistical script for file.')
     parser.add_option('-f', '--file', dest='file', metavar='str', help='file name for statistic.')
     (options, args) = parser.parse_args(args=argv[1:])
+
+    if not options.file:
+        parser.print_usage()
+        error_exit("Must provide statistic filename, just like: %s -f filename"\
+                % prg_name)
 
     return (options, args)
 
@@ -41,10 +48,6 @@ map = {}
 def main(argv):
 
     (options, args) = parse_cmdline(argv)
-
-    if not options.file:
-        error_exit("Must provide statistic filename, just like: %s -f filename"\
-                % prg_name)
 
     try:
         f_file = open(options.file, "r")
