@@ -40,9 +40,10 @@ COL_RESET = "\x1b[0m"
 
 def reporthook(rblock, sblock, totalsize):
     """
-     @totalsize is reported in bytes.
-     @sblock is the amount read each time.
-     @rblock is the number of blocks successfully read.
+     reporthook: report hook for urllib.urlretrieve.
+        @totalsize is reported in bytes.
+        @sblock is the amount read each time.
+        @rblock is the number of blocks successfully read.
     """
     if not rblock:
         print 'Connect opened:'
@@ -57,6 +58,11 @@ def reporthook(rblock, sblock, totalsize):
     return
 
 def download_file(url, destfile):
+    """
+     download_file: function for download from url to save as destfile
+        @url the source file to download.
+        @destfile the destination save file for local.
+    """
     file_url = url
 
     try:
@@ -83,6 +89,12 @@ def download_file(url, destfile):
 
 
 def download_file_bar(url, destfile):
+    """
+     download_file_bar: function for download from url
+            to save as destfile with progress bar.
+        @url the source file to download.
+        @destfile the destination save file for local.
+    """
     file_url = url
 
     # Download the file
@@ -105,8 +117,12 @@ def download_file_bar(url, destfile):
                             scale_start=0,
                             scale_end=scale)
 
-    print("Downloading file: %s" % url)
+    if os.path.exists(destfile):
+        now = currenttime()
+        tmpfile = "%s.%s" % (destfile, now)
+        shutil.move(destfile, tmpfile)
 
+    print("Downloading file: %s" % url)
     print_flag = 0
     with open(destfile, "wb+") as code:
         # Load all the data chunk by chunk
@@ -124,7 +140,7 @@ def download_file_bar(url, destfile):
 
     bar.show_progress_bar()
     print("")
-    print("Finished :)")
+    print("%s finished :)" % url)
 
 def parse_cmdline(argv):
     """Parses the command-line."""
@@ -160,6 +176,9 @@ def parse_cmdline(argv):
     return (options, args)
 
 def currenttime(): 
+    """
+     currenttime: function for return now time string.
+    """
     nowtime = time.localtime()
 
     year = str(nowtime.tm_year)
@@ -181,7 +200,6 @@ def message(msg):
     final_msg = "%s%s %s\n" % (BLUE, msg, COL_RESET)
     sys.stdout.write(final_msg)
 
-"""main route for program."""
 def main(argv):
     """main program route."""
     options, args = parse_cmdline(argv)
@@ -197,5 +215,9 @@ def main(argv):
     else:
         download_file_bar(options.url, destfile)
 
+#########################################
+# entry of program route.
+#########################################
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
+
