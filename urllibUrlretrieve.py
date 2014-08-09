@@ -2,12 +2,32 @@
 
 import os
 import urllib
+import urllib2
 import sys
 import optparse
 import re
 import shutil
 import time, datetime
 from urlparse import urlparse
+
+pygressbar = 1
+
+try:
+    from pygressbar.pygressbar import (RED,
+                    COL_RESET,
+                    BLUE, MAGENTA,
+                    GREEN,
+                    YELLOW,
+                    CYAN,
+                    WHITE)
+    from pygressbar.pygressbar import (PygressBar,
+                    SimpleProgressBar,
+                    CustomProgressBar,
+                    SimplePercentProgressBar,
+                    SimpleAnimatedProgressBar,
+                    SimpleColorBar)
+except ImportError:
+    pygressbar = None
 
 RED   = "\x1b[31m"
 GREEN = "\x1b[32m"
@@ -36,6 +56,76 @@ def reporthook(rblock, sblock, totalsize):
 
     return
 
+def download_file(url, destfile):
+    file_url = url
+
+    try:
+        filename, msg = urllib.urlretrieve(
+                #'http://code.jquery.com/jquery-2.1.1.js',
+                file_url,
+                reporthook = reporthook)
+
+        print ""
+        print "File:", filename
+        print "Header:"
+        print msg
+        if os.path.exists(filename):
+            if os.path.exists(destfile):
+                now = currenttime()
+                tmpfile = "%s.%s" % (destfile, now)
+                shutil.move(destfile, tmpfile)
+            shutil.move(filename, destfile)
+
+        #print 'File exists before cleanup:', os.path.exists(filename)
+    finally:
+        urllib.urlcleanup()
+        #print 'File still exists:', os.path.exists(filename)
+
+
+def download_file_bar(url, destfile):
+    file_url = url
+
+    # Download the file
+    if sys.version_info[0] == 3:
+        f = urllib.request.urlopen(file_url)
+    else:
+        f = urllib.urlopen(file_url)
+
+    # Get the total length of the file
+    scale = int(f.headers["content-length"])
+    chunk_size = 500
+
+    bar = CustomProgressBar(length=100,
+                            left_limit='[',
+                            right_limit=']',
+                            head_repr=None,
+                            empty_repr=' ',
+                            filled_repr='|',
+                            start=0,
+                            scale_start=0,
+                            scale_end=scale)
+
+    print("Downloading file: %s" % url)
+
+    print_flag = 0
+    with open(destfile, "wb+") as code:
+        # Load all the data chunk by chunk
+        while not bar.completed():
+            data = f.read(chunk_size)
+            code.write(data)
+            bar.increase(chunk_size)
+
+            # Don't print always
+            if print_flag == 100:
+                bar.show_progress_bar()
+                print_flag = 0
+            else:
+                print_flag += 1
+
+    bar.show_progress_bar()
+    print("")
+    print("Finished :)")
+
 def parse_cmdline(argv):
     """Parses the command-line."""
 
@@ -49,6 +139,8 @@ def parse_cmdline(argv):
                         help='url file for download.')
     parser.add_option('-d', '--dest', dest='dest', metavar='str',
                         default="./", help='dest dir for save file.')
+    parser.add_option('-p', '--progress', action="store_true", default=False, 
+                        dest='progress', help='disable progress bar fuction.')
     (options, args) = parser.parse_args(args=argv[1:])
 
     if options.url is None:
@@ -74,7 +166,7 @@ def currenttime():
     month = str(nowtime.tm_mon)
     if len(month) < 2:
         month = '0' + month
-    day =  str(nowtime.tm_yday)
+    day = str(nowtime.tm_mday)
     if len(day) < 2:
         day = '0' + day
     return (year + '-' + month + '-' + day)
@@ -100,27 +192,10 @@ def main(argv):
 
     destfile = os.path.join(options.dest, options.file)
 
-    try:
-        filename, msg = urllib.urlretrieve(
-                #'http://code.jquery.com/jquery-2.1.1.js',
-                options.url,
-                reporthook = reporthook)
-    
-        print ""
-        print "File:", filename
-        print "Header:"
-        print msg
-        if os.path.exists(filename):
-            if os.path.exists(destfile):
-                now = currenttime()
-                tmpfile = "%s.%s" % (destfile, now)
-                shutil.move(destfile, tmpfile)
-            shutil.move(filename, destfile)
-
-        #print 'File exists before cleanup:', os.path.exists(filename)
-    finally:
-        urllib.urlcleanup()
-        #print 'File still exists:', os.path.exists(filename)
+    if pygressbar is None or options.progress:
+        download_file(options.url, destfile)
+    else:
+        download_file_bar(options.url, destfile)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
