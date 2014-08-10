@@ -106,8 +106,13 @@ def download_file_bar(url, destfile):
     # Get the total length of the file
     scale = int(f.headers["content-length"])
     chunk_size = 500
+    try:
+        length = int(os.environ['COLUMNS'])
+    except (KeyError, ValueError):
+        length = 80
+    length -= 2
 
-    bar = CustomProgressBar(length=100,
+    bar = CustomProgressBar(length=length,
                             left_limit='[',
                             right_limit=']',
                             head_repr=None,
@@ -155,7 +160,7 @@ def parse_cmdline(argv):
                         help='url file for download.')
     parser.add_option('-d', '--dest', dest='dest', metavar='str',
                         default="./", help='dest dir for save file.')
-    parser.add_option('-p', '--progress', action="store_true", default=False, 
+    parser.add_option('-p', '--progress', action="store_true", default=False,
                         dest='progress', help='disable progress bar fuction.')
     (options, args) = parser.parse_args(args=argv[1:])
 
@@ -175,7 +180,7 @@ def parse_cmdline(argv):
 
     return (options, args)
 
-def currenttime(): 
+def currenttime():
     """
      currenttime: function for return now time string.
     """
@@ -192,7 +197,7 @@ def currenttime():
 
 def error_exit(msg, status=1):
     #sys.stderr.write('Error: %s\n' % msg)
-    err_msg = "%sError:%s %s\n" % (RED, COL_RESET, msg) 
+    err_msg = "%sError:%s %s\n" % (RED, COL_RESET, msg)
     sys.stderr.write(err_msg)
     sys.exit(status)
 
@@ -206,7 +211,7 @@ def main(argv):
 
     if options.file is None:
         parsed = urlparse(options.url)
-        options.file = re.sub('[\\\/]', '', parsed.path) 
+        options.file = re.sub('[\\\/]', '', parsed.path)
 
     destfile = os.path.join(options.dest, options.file)
 
