@@ -66,13 +66,14 @@ def download_file(url, destfile):
     file_url = url
 
     try:
+        print("--> Downloading file: %s" % file_url)
         filename, msg = urllib.urlretrieve(
                 #'http://code.jquery.com/jquery-2.1.1.js',
                 file_url,
                 reporthook = reporthook)
 
         print ""
-        print "File:", filename
+        #print "File:", filename
         print "Header:"
         print msg
         if os.path.exists(filename):
@@ -127,7 +128,7 @@ def download_file_bar(url, destfile):
         tmpfile = "%s.%s" % (destfile, now)
         shutil.move(destfile, tmpfile)
 
-    print("Downloading file: %s" % url)
+    print("--> Downloading file: %s" % url)
     print_flag = 0
     with open(destfile, "wb+") as code:
         # Load all the data chunk by chunk
@@ -161,7 +162,7 @@ def parse_cmdline(argv):
     parser.add_option('-d', '--dest', dest='dest', metavar='str',
                         default="./", help='dest dir for save file.')
     parser.add_option('-p', '--progress', action="store_true", default=False,
-                        dest='progress', help='disable progress bar fuction.')
+        dest='progress', help='disable progress bar fuction, default:enable.')
     (options, args) = parser.parse_args(args=argv[1:])
 
     if options.url is None:
@@ -172,6 +173,9 @@ def parse_cmdline(argv):
         if not os.path.isdir(options.dest):
             parser.print_usage()
             error_exit("%s is not a dir." % options.dest)
+
+        if not os.access(options.dest, os.W_OK | os.X_OK):
+            error_exit("%s is not have a write priority." % options.dest)
     else:
         try:
             os.makedirs(options.dest)

@@ -36,3 +36,6 @@ def runcmd(cmd):
         print stdout, stderr
         return False
 
+#assert expression1, expression2
+#if __debug__:
+#    if not expression1: raise AssertionError(expression2)
