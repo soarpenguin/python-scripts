@@ -13,6 +13,7 @@ import time
 import subprocess
 import threading
 import struct
+from __future__ import division
 
 
 import os.path
@@ -251,6 +252,52 @@ def unique(old_list):
         if x not in new_list :
             new_list.append(x)
     return new_list
+
+
+def humanize_bytes(n, precision=2):
+    # Author: Doug Latornell
+    # Licence: MIT
+    # URL: http://code.activestate.com/recipes/577081/
+    """Return a humanized string representation of a number of bytes.
+
+    Assumes `from __future__ import division`.
+
+    >>> humanize_bytes(1)
+    '1 B'
+    >>> humanize_bytes(1024, precision=1)
+    '1.0 kB'
+    >>> humanize_bytes(1024 * 123, precision=1)
+    '123.0 kB'
+    >>> humanize_bytes(1024 * 12342, precision=1)
+    '12.1 MB'
+    >>> humanize_bytes(1024 * 12342, precision=2)
+    '12.05 MB'
+    >>> humanize_bytes(1024 * 1234, precision=2)
+    '1.21 MB'
+    >>> humanize_bytes(1024 * 1234 * 1111, precision=2)
+    '1.31 GB'
+    >>> humanize_bytes(1024 * 1234 * 1111, precision=1)
+    '1.3 GB'
+
+    """
+    abbrevs = [
+        (1 << 50, 'PB'),
+        (1 << 40, 'TB'),
+        (1 << 30, 'GB'),
+        (1 << 20, 'MB'),
+        (1 << 10, 'kB'),
+        (1, 'B')
+    ]
+
+    if n == 1:
+        return '1 B'
+
+    for factor, suffix in abbrevs:
+        if n >= factor:
+            break
+
+    # noinspection PyUnboundLocalVariable
+    return '%.*f %s' % (precision, n / factor, suffix)
 
 
 if __name__ == '__main__':
