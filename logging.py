@@ -2,9 +2,14 @@
 
 import sys
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 
-LOG_FILENAME = sys.argv[0] + ".log"
+try:
+    LOG_FILENAME = os.path.splitext(__file__)[0] + ".log"
+    #LOG_FILENAME = sys.argv[0] + ".log"
+except:
+    LOG_FILENAME = __file__ + ".log"
 
 #logging.basicConfig(
 #        level=logging.DEBUG,

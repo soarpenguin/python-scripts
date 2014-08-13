@@ -10,6 +10,9 @@ ERROR = 4
 FATAL = 5
 
 import sys
+import os
+import logging
+import logging.handlers
 
 class Log:
 
@@ -73,3 +76,56 @@ def set_verbosity(v):
         set_threshold(INFO)
     elif v >= 2:
         set_threshold(DEBUG)
+
+
+def init_log(log_path, level = logging.INFO, when = 'D', backup = 7,
+		format = '[%(levelname)8s]: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s',
+		datefmt = '%Y-%m-%d %H:%M:%S', filemode = 'a+', debug_console = False):
+
+	"""
+	Args:
+	    log_path: log file path prefix
+	    level: DEBUG < INFO < WARNING < ERROR < CRITICAL
+	            the default value is logging.INFO
+	    when: how to split the log file by time interval
+	      'S': Seconds
+		  'M': Minutes
+		  'H': Hours
+		  'D': Days
+		  'W': Week day
+		 default value: 'D'
+        format: formate of log
+	    backup: how many backup file to keep
+	            default value is 7
+	"""
+
+	formatter = logging.Formatter(format, datefmt)
+	logger = logging.getLogger()
+	logger.setLevel(level)
+
+	dir = os.path.dirname(log_path)
+	if not os.path.isdir(dir):
+		os.makedirs(dir)
+
+	handler = logging.handlers.TimedRotatingFileHandler(log_path + '.log', \
+			when = when, backupCount = backup)
+	handler.setLevel(level)
+	handler.setFormatter(formatter)
+	logger.addHandler(handler)
+
+	handler = logging.handlers.TimedRotatingFileHandler(log_path + '.log.wf', \
+			when = when, backupCount = backup)
+	handler.setLevel(logging.WARNING)
+	handler.setFormatter(formatter)
+	logger.addHandler(handler)
+
+	if debug_console == True:
+		_setup_console()
+
+def _setup_console():
+	console = logging.StreamHandler()
+	console.setLevel(logging.DEBUG)
+	formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+	console.setFormatter(formatter)
+	logging.getLogger().addHandler(console)
+	

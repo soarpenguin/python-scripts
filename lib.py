@@ -136,6 +136,30 @@ NUMBER_RE = re.compile(
     r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
     (re.VERBOSE | re.MULTILINE | re.DOTALL))
 
+SYNTAX_GROUP_REGEX = re.compile(
+  r"""^
+      (?P<group_name>\w+)
+      \s+
+      xxx
+      \s+
+      (?P<content>.+?)
+      $""",
+  re.VERBOSE )
+
+KEYWORD_REGEX = re.compile( r'^[\w,]+$' )
+
+SYNTAX_ARGUMENT_REGEX = re.compile(
+  r"^\w+=.*$" )
+
+ROOT_GROUPS = set([
+  'Statement',
+  'Boolean',
+  'Include',
+  'Type',
+])
+#for root_group in ROOT_GROUPS:
+#    print root_group
+
 def read_file(fpath):
     BLOCK_SIZE = 1024
     with open(fpath, 'rb') as f:
@@ -240,7 +264,7 @@ def exec_cmd(cmd_list, retry_times=1, retry_interval_sec=0):
         except subprocess.CalledProcessError, er:
             ret = er.returncode
             output = None
-            retry_times-=1
+            retry_times -= 1
             if retry_interval_sec > 0: time.sleep(retry_interval_sec)
 
     return (ret, output)
@@ -253,6 +277,22 @@ def unique(old_list):
             new_list.append(x)
     return new_list
 
+import cStringIO, traceback
+#ei = sys.exc_info()
+def formatException(ei):
+    """
+    Format and return the specified exception information as a string.
+
+    This default implementation just uses
+    traceback.print_exception()
+    """
+    sio = cStringIO.StringIO()
+    traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
+    s = sio.getvalue()
+    sio.close()
+    if s[-1:] == "\n":
+        s = s[:-1]
+    return s
 
 def humanize_bytes(n, precision=2):
     # Author: Doug Latornell
