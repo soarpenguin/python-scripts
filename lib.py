@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import division
 import string
 import re
 import os
@@ -13,7 +14,6 @@ import time
 import subprocess
 import threading
 import struct
-from __future__ import division
 
 
 import os.path
@@ -268,6 +268,28 @@ def exec_cmd(cmd_list, retry_times=1, retry_interval_sec=0):
             if retry_interval_sec > 0: time.sleep(retry_interval_sec)
 
     return (ret, output)
+
+
+USE_SHELL = sys.platform.startswith("win")
+def exec_cmd_with_stderr(command,
+                         universal_newlines = True,
+                         useshell = USE_SHELL,
+                         env = os.environ):
+    try:
+        p = subprocess.Popen(command,
+                          stdout = subprocess.PIPE,
+                          stderr = subprocess.PIPE,
+                          shell = useshell, 
+                          universal_newlines = universal_newlines,
+                          env = env)
+        output = p.stdout.read()
+        p.wait()
+        errout = p.stderr.read()
+        p.stdout.close()
+        p.stderr.close()
+        return p.returncode, output, errout
+    except :
+        return -1, None, None
 
 
 def unique(old_list):
