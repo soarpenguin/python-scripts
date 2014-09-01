@@ -159,15 +159,17 @@ def parse_cmdline(argv):
                         help='file name for save.')
     parser.add_option('-u', '--url', dest='url', metavar='str',
                         help='url file for download.')
+    parser.add_option('-l', '--filelist', dest='filelist', metavar='str',
+                        help='url file list for batch download.')
     parser.add_option('-d', '--dest', dest='dest', metavar='str',
                         default="./", help='dest dir for save file.')
     parser.add_option('-p', '--progress', action="store_true", default=False,
         dest='progress', help='disable progress bar fuction, default:enable.')
     (options, args) = parser.parse_args(args=argv[1:])
 
-    if options.url is None:
+    if options.url is None and options.filelist is None:
         parser.print_usage()
-        error_exit("option -u is must.")
+        error_exit("option -u or -l is must.")
 
     if os.path.exists(options.dest):
         if not os.path.isdir(options.dest):
@@ -213,16 +215,33 @@ def main(argv):
     """main program route."""
     options, args = parse_cmdline(argv)
 
-    if options.file is None:
-        parsed = urlparse(options.url)
-        options.file = re.sub('[\\\/]', '', parsed.path)
+    if options.filelist is not None:
+        try:
+            f_lists = open(options.filelist, "r")
 
-    destfile = os.path.join(options.dest, options.file)
+            for line in f_lists:
+                line = line.strip('\n\r')
+                parsed = urlparse(line)
+                filename = re.sub('[\\\/]', '', parsed.path)
 
-    if pygressbar is None or options.progress:
-        download_file(options.url, destfile)
+                destfile = os.path.join(options.dest, filename)
+                if pygressbar is None or options.progress:
+                    download_file(line, destfile)
+                else:
+                    download_file_bar(line, destfile)
+        finally:
+            f_lists.close()
     else:
-        download_file_bar(options.url, destfile)
+        if options.file is None:
+            parsed = urlparse(options.url)
+            options.file = re.sub('[\\\/]', '', parsed.path)
+
+        destfile = os.path.join(options.dest, options.file)
+
+        if pygressbar is None or options.progress:
+            download_file(options.url, destfile)
+        else:
+            download_file_bar(options.url, destfile)
 
 #########################################
 # entry of program route.
