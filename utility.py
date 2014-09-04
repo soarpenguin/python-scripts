@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+#-*-coding:utf-8-*-
 
 import sys
 import subprocess
+import ConfigParser
 
 def oops(msg):
     print msg
@@ -36,6 +38,16 @@ def runcmd(cmd):
         print stdout, stderr
         return False
 
+def getConfig(file, group, configName):
+    config = ConfigParser.ConfigParser()
+    config.readfp(open(file, "rw"))
+    configValue = config.get(group, configName.strip(' ').strip('\'').strip("\""))
+
+    return configValue
+
+if __name__ == '__main__':
+    configvalue = getConfig("./config.ini", "mysql", "port")
+    print configvalue
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
