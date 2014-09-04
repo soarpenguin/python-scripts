@@ -220,7 +220,7 @@ def main(argv):
             f_lists = open(options.filelist, "r")
 
             for line in f_lists:
-                line = line.strip('\n\r')
+                line = line.strip(' ').strip('\n\r')
                 parsed = urlparse(line)
                 filename = re.sub('[\\\/]', '', parsed.path)
 
