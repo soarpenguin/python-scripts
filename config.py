@@ -45,13 +45,13 @@ class Config(object):
         self.parser = RawConfigParser()
         self.load()
 
-    def load(self):
+    def load(self, encoding='utf-8'):
         """Load a config file from the list of paths, if it exists."""
         for config_file in self.get_config_paths():
             if os.path.isfile(config_file) and os.path.getsize(config_file) > 0:
                 try:
                     if is_py3:
-                        self.parser.read(config_file, encoding='utf-8')
+                        self.parser.read(config_file, encoding=encoding)
                     else:
                         self.parser.read(config_file)
                     # print(_("DEBUG: Read configuration file %s") % config_file)
@@ -66,7 +66,8 @@ class Config(object):
         conf_path = os.path.realpath(os.path.join(work_path, '..', '..', 'conf'))
 
         if self.location is not None:
-            paths.append(self.location)
+            #paths.append(self.location)
+            paths.append(os.path.join(self.location, self.config_filename))
 
         if os.path.exists(conf_path):
             paths.append(os.path.join(conf_path, self.config_filename))
@@ -118,4 +119,10 @@ class Config(object):
             return value
 
 if __name__ == '__main__':
-    pass
+
+    config_file = "./config.conf"
+    if os.path.isfile(config_file):
+        config = Config("./")
+
+        print config.items("test")
+        print config.get_raw_option("test", "name")
