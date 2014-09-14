@@ -4,7 +4,7 @@ import glob
 import os
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def get_requires():
     requires = ['psutil>=2.0.0']
@@ -53,9 +53,10 @@ setup(
 
     ### Dependencies
     install_requires = get_requires(),
-    packages=["logging"],
-    include_package_data=True,
-    data_files=get_data_files(),
+    #packages = ["logging"],
+    packages = find_packages(),
+    include_package_data = True,
+    data_files = get_data_files(),
     #test_suite="unitest.py",
     #entry_points={"console_scripts": ["glances=glances:main"]},
 

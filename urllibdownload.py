@@ -157,7 +157,7 @@ def parse_cmdline(argv):
             description='download url file use urllib.')
     parser.add_option('-f', '--file', dest='file', metavar='str',
                         help='file name for save.')
-    parser.add_option('-u', '--url', dest='url', metavar='str',
+    parser.add_option('-u', '--url', dest='url', metavar='URL',
                         help='url file for download.')
     parser.add_option('-l', '--filelist', dest='filelist', metavar='str',
                         help='url file list for batch download.')
