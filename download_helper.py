@@ -9,7 +9,10 @@ import tempfile
 import shutil
 import contextlib
 import zipfile
+import platform
+import re
 from distutils import log
+from urlparse import urlparse
 
 try:
     from urllib.request import urlopen
@@ -167,6 +170,12 @@ def get_best_downloader():
 
 
 def main():
+    url = "http://code.jquery.com/jquery-2.1.1.js"
+    parsed = urlparse(url)
+    saveto = re.sub('[\\\/]', '', parsed.path)
+    saveto = os.path.join(os.curdir, saveto)
+    downloader = get_best_downloader()
+    downloader(url, saveto)
     pass
 
 if __name__ == '__main__':
