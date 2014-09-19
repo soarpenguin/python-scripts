@@ -1,0 +1,69 @@
+import shutil
+import datetime
+import re
+import tempfile
+
+
+def extract_filename_from_headers(headers):
+    """
+    Extracts a filename from the given dict of HTTP headers.
+
+    Looks for the content-disposition header and applies a regex.
+    Returns the filename if successful, else None."""
+    cont_disp_regex = 'attachment; ?filename="(.+)"'
+    res = None
+
+    if 'content-disposition' in headers:
+        cont_disp = headers['content-disposition']
+        match = re.match(cont_disp_regex, cont_disp)
+        if match:
+            res = match.group(1)
+            # Try preventing any funny business.
+            res = os.path.basename(res)
+
+    return res
+
+
+try:
+    import hashlib
+    HAS_HASHLIB=True
+except ImportError:
+    HAS_HASHLIB=False
+
+# ==============================================================
+# url handling
+
+def url_filename(url):
+    fn = os.path.basename(urlparse.urlsplit(url)[2])
+    if fn == '':
+        return 'index.html'
+    return fn
+
+def url_get(module, url, dest, use_proxy, last_mod_time, force):
+    """
+    Download data from the url and store in a temporary file.
+
+    Return (tempfile, info about the request)
+    """
+
+    rsp, info = fetch_url(module, url, use_proxy=use_proxy, force=force, last_mod_time=last_mod_time)
+
+    if info['status'] == 304:
+        module.exit_json(url=url, dest=dest, changed=False, msg=info.get('msg', ''))
+
+    # create a temporary file and copy content to do md5-based replacement
+    if info['status'] != 200:
+        module.fail_json(msg="Request failed", status_code=info['status'], response=info['msg'], url=url, dest=dest)
+
+    fd, tempname = tempfile.mkstemp()
+    f = os.fdopen(fd, 'wb')
+    try:
+        shutil.copyfileobj(rsp, f)
+    except Exception, err:
+        os.remove(tempname)
+        module.fail_json(msg="failed to create temporary content file: %s" % str(err))
+    f.close()
+    rsp.close()
+    return tempname, info
+
+
