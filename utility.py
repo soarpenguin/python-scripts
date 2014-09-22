@@ -4,6 +4,45 @@
 import sys
 import subprocess
 import ConfigParser
+import os
+import optparse
+import shutil
+
+join = os.path.join
+py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
+
+def mkdir(path):
+    if not os.path.exists(path):
+        print 'Creating %s' % path
+        os.makedirs(path)
+    else:
+        if verbose:
+            print 'Directory %s already exists'
+
+def symlink(src, dest):
+    if not os.path.exists(dest):
+        if verbose:
+            print 'Creating symlink %s' % dest
+        os.symlink(src, dest)
+    else:
+        print 'Symlink %s already exists' % dest
+
+
+def rmtree(dir):
+    if os.path.exists(dir):
+        print 'Deleting tree %s' % dir
+        shutil.rmtree(dir)
+    else:
+        if verbose:
+            print 'Do not need to delete %s; already gone' % dir
+
+def make_exe(fn):
+    if os.name == 'posix':
+        oldmode = os.stat(fn).st_mode & 07777
+        newmode = (oldmode | 0555) & 07777
+        os.chmod(fn, newmode)
+        if verbose:
+            print 'Changed mode of %s to %s' % (fn, oct(newmode))
 
 def oops(msg):
     print msg
