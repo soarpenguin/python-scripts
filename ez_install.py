@@ -117,13 +117,16 @@ def parse_argument():
                 help = 'Configure file name for operation.'
             )
 
+    #parser.add_argument('name_or_ip', nargs = 1,
+    #            help='''host name or ip for query, ip for exact match.''')
+
     options = parser.parse_args()
 
-    return options
+    return parser, options
 
 ################# main route ######################
 if __name__ == '__main__':
-    options = parse_argument()
+    parser, options = parse_argument()
 
     setup_logging()
     LOG.setLevel(logging.DEBUG)
