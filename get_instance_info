@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Import system libs
+import os
+import re
+import sys
+import argparse
+import logging
+import urllib2
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
+# PY3?
+is_py3 = sys.version_info >= (3, 3)
+
+script = os.path.basename(sys.argv[0])
+scriptname = os.path.splitext(script)[0]
+DEFAULT_LOG = "/var/log/" + scriptname
+LOG = logging.getLogger(scriptname)
+API_URL = "http://xxxxxxx.xxxx/info.php"
+
+RET_OK           = 0
+RET_FAILED       = 1
+RET_INVALID_ARGS = 2
+
+IP_PATTERN = re.compile(r"""
+    \b(2[0-4]\d|25[0-5]|[01]?\d\d?)\.
+    (2[0-4]\d|25[0-5]|[01]?\d\d?)\.
+    (2[0-4]\d|25[0-5]|[01]?\d\d?)\.
+    (2[0-4]\d|25[0-5]|[01]?\d\d?)\b""", re.VERBOSE)
+
+def error_exit(msg, status=1):
+    LOG.error('%s\n' % msg)
+    sys.exit(status)
+
+def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
+    """Sets up logging and associated handlers."""
+
+    LOG.setLevel(logging.INFO)
+    if backup_count is not None and max_bytes is not None:
+        assert backup_count > 0
+        assert max_bytes > 0
+        ch = RotatingFileHandler(logfile, 'a', max_bytes, backup_count)
+    else:  # Setup stream handler.
+        ch = logging.StreamHandler(sys.stdout)
+
+    ch.setFormatter(logging.Formatter('%(asctime)s %(name)s[%(process)d] '
+                                    '%(levelname)s: %(message)s'))
+    LOG.addHandler(ch)
+
+def parse_argument():
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-v', '--version', action = 'version',
+                version = '%(prog)s 1.0'
+            )
+
+    parser.add_argument('name_or_ip', nargs = 1, 
+                help='''host name or ip for query, ip for exact match.''')
+            #nargs: ? for 0 or one. + for 1 or more. * 0 for or more.
+
+    options = parser.parse_args()
+
+    return parser, options
+
+def get_info_name(hostname):
+    url = API_URL + "?hostname=" + hostname
+    LOG.debug("get data from url: %s" % url)
+    try:
+        data = urllib2.urlopen(url).read()
+        LOG.debug("get data is: %s" % data)
+        jstr = json.loads(data)
+        if jstr["success"]:
+            print json.dumps(jstr, sort_keys=True, indent=4, separators=(',', ': '),\
+                    ensure_ascii=False, encoding='utf-8').encode("gb2312")
+        else:
+            print jstr["message"]
+    except Exception, e:
+        LOG.error("Have a problem %s", str(e))
+        print "Query infomation failed."
+
+def get_info_ip(ip):
+    url = API_URL + "?ip=" + ip
+    LOG.debug("get data from url: %s" % url)
+    try:
+        data = urllib2.urlopen(url).read()
+        LOG.debug("get data is: %s" % data)
+        jstr = json.loads(data)
+        if jstr["success"]:
+            print json.dumps(jstr, sort_keys=True, indent=4, separators=(',', ': '),\
+                    ensure_ascii=False, encoding='utf-8').encode("gb2312")
+        else:
+            print jstr["message"]
+    except Exception, e:
+        LOG.error("Have a problem %s", str(e))
+        print "Query infomation failed use ip: %s." % ip
+
+################# main route ######################
+if __name__ == '__main__':
+    parser, options = parse_argument()
+
+    setup_logging()
+    LOG.setLevel(logging.ERROR)
+    #LOG.setLevel(logging.DEBUG)
+    name_or_ip = vars(options)["name_or_ip"]
+    name_or_ip = name_or_ip[0].strip()
+
+    LOG.debug("name_or_ip value is:" + str(vars(options)))
+
+    if name_or_ip.strip() == "":
+        parser.print_help()
+        sys.exit(RET_INVALID_ARGS)
+
+    try:
+        m = IP_PATTERN.match(name_or_ip)
+        if m:
+            get_info_ip(name_or_ip)
+        else:
+            get_info_name(name_or_ip)
+    except TypeError:
+        get_info_name(name_or_ip)
+
