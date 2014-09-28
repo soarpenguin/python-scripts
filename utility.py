@@ -84,6 +84,12 @@ def getConfig(file, group, configName):
 
     return configValue
 
+def _print_message(self, message, file=None):
+    if message:
+        if file is None:
+            file = _sys.stderr
+        file.write(message)
+
 if __name__ == '__main__':
     configvalue = getConfig("./config.ini", "mysql", "port")
     print configvalue

@@ -1,8 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import shutil
 import datetime
 import re
 import tempfile
 
+try:
+    import hashlib
+    HAS_HASHLIB=True
+except ImportError:
+    HAS_HASHLIB=False
 
 def extract_filename_from_headers(headers):
     """
@@ -22,13 +30,6 @@ def extract_filename_from_headers(headers):
             res = os.path.basename(res)
 
     return res
-
-
-try:
-    import hashlib
-    HAS_HASHLIB=True
-except ImportError:
-    HAS_HASHLIB=False
 
 # ==============================================================
 # url handling
