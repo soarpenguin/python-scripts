@@ -28,9 +28,7 @@ RET_FAILED       = 1
 RET_INVALID_ARGS = 2
 
 IP_PATTERN = re.compile(r"""
-    \b(2[0-4]\d|25[0-5]|[01]?\d\d?)\.
-    (2[0-4]\d|25[0-5]|[01]?\d\d?)\.
-    (2[0-4]\d|25[0-5]|[01]?\d\d?)\.
+    \b((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}
     (2[0-4]\d|25[0-5]|[01]?\d\d?)\b""", re.VERBOSE)
 
 def error_exit(msg, status=1):
@@ -82,7 +80,7 @@ def get_info_name(hostname):
             print jstr["message"]
     except Exception, e:
         LOG.error("Have a problem %s", str(e))
-        print "Query infomation failed."
+        print "Query infomation failed use hostname: %s." % hostname
 
 def get_info_ip(ip):
     url = API_URL + "?ip=" + ip
