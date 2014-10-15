@@ -203,6 +203,19 @@ elif os.name == "posix":
         def find_library(name):
             return _findSoname_ldconfig(name) or _get_soname(_findLib_gcc(name))
 
+def findall(dir = os.curdir):
+    """Find all files under 'dir' and return the list of full filenames
+    (relative to 'dir').
+    """
+    all_files = []
+    for base, dirs, files in os.walk(dir):
+        if base==os.curdir or base.startswith(os.curdir+os.sep):
+            base = base[2:]
+        if base:
+            files = [os.path.join(base, f) for f in files]
+        all_files.extend(filter(os.path.isfile, files))
+    return all_files
+
 ################################################################
 # test code
 
