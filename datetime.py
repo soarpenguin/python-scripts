@@ -31,6 +31,11 @@ def _days_in_month(year, month):
         return 29
     return _DAYS_IN_MONTH[month]
 
+def _days_before_month(year, month):
+    "year, month -> number of days in year preceeding first day of month."
+    assert 1 <= month <= 12, 'month must be in 1..12'
+    return _DAYS_BEFORE_MONTH[month] + (month > 2 and _is_leap(year))
+
 def _format_time(hh, mm, ss, us):
     # Skip trailing microseconds when us==0.
     result = "%02d:%02d:%02d" % (hh, mm, ss)
@@ -38,6 +43,22 @@ def _format_time(hh, mm, ss, us):
         result += ".%06d" % us
     return result
 
+def _ymd2ord(year, month, day):
+    "year, month, day -> ordinal, considering 01-Jan-0001 as day 1."
+    assert 1 <= month <= 12, 'month must be in 1..12'
+    dim = _days_in_month(year, month)
+    assert 1 <= day <= dim, ('day must be in 1..%d' % dim)
+    return (_days_before_year(year) +
+            _days_before_month(year, month) +
+            day)
+
+# Month and day names.  For localized versions, see the calendar module.
+_MONTHNAMES = [None, "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+_DAYNAMES = [None, "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
 if __name__ == '__main__':
     print _is_leap(2014)
+    print _ymd2ord(2014, 10, 20)
+
 

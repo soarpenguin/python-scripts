@@ -47,5 +47,34 @@ def newer(source, target):
 
     return os.stat(source).st_mtime > os.stat(target).st_mtime
 
+
+_environ_checked = False
+
+def check_environ():
+    """Ensure that 'os.environ' has all the environment variables needed.
+
+    We guarantee that users can use in config files, command-line options,
+    etc.  Currently this includes:
+      HOME - user's home directory (Unix only)
+      PLAT - description of the current platform, including hardware
+             and OS (see 'get_platform()')
+    """
+    global _environ_checked
+    if _environ_checked:
+        return
+
+    if os.name == 'posix' and 'HOME' not in os.environ:
+        import pwd
+        os.environ['HOME'] = pwd.getpwuid(os.getuid())[5]
+
+    #if 'PLAT' not in os.environ:
+    #    os.environ['PLAT'] = get_platform()
+
+    _environ_checked = True
+
+
 if __name__ == "__main__":
     print newer("utility.py", "util.py")
+
+    check_environ()
+    print _environ_checked
