@@ -7,6 +7,8 @@ import ConfigParser
 import os
 import optparse
 import shutil
+import re
+from stat import S_ISDIR, S_ISREG, ST_MODE
 
 join = os.path.join
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
@@ -90,9 +92,26 @@ def _print_message(self, message, file=None):
             file = _sys.stderr
         file.write(message)
 
+def check_access_rights(top):
+    for f in os.listdir(top):
+        pathname = os.path.join(top, f)
+        mode = os.stat(pathname).st_mode
+
+        if S_ISDIR(mode):
+            # directory, recurse into it
+            check_access_rights(pathname)
+        elif S_ISREG(mode):
+            # file, check permissions
+            re.match("0100775", oct(os.stat(pathname)[ST_MODE]))
+        else:
+            # unknown file type
+            pass
+
 if __name__ == '__main__':
-    configvalue = getConfig("./config.ini", "mysql", "port")
-    print configvalue
+    #configvalue = getConfig("./config.ini", "mysql", "port")
+    #print configvalue
+
+    print(check_access_rights(os.path.dirname(os.path.abspath(__file__))))
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
