@@ -15,28 +15,28 @@ py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 def mkdir(path):
     if not os.path.exists(path):
-        print 'Creating %s' % path
+        print('Creating %s' % path)
         os.makedirs(path)
     else:
         if verbose:
-            print 'Directory %s already exists'
+            print('Directory %s already exists')
 
 def symlink(src, dest):
     if not os.path.exists(dest):
         if verbose:
-            print 'Creating symlink %s' % dest
+            print('Creating symlink %s' % dest)
         os.symlink(src, dest)
     else:
-        print 'Symlink %s already exists' % dest
+        print('Symlink %s already exists' % dest)
 
 
 def rmtree(dir):
     if os.path.exists(dir):
-        print 'Deleting tree %s' % dir
+        print('Deleting tree %s' % dir)
         shutil.rmtree(dir)
     else:
         if verbose:
-            print 'Do not need to delete %s; already gone' % dir
+            print('Do not need to delete %s; already gone' % dir)
 
 def make_exe(fn):
     if os.name == 'posix':
@@ -44,10 +44,10 @@ def make_exe(fn):
         newmode = (oldmode | 0555) & 07777
         os.chmod(fn, newmode)
         if verbose:
-            print 'Changed mode of %s to %s' % (fn, oct(newmode))
+            print('Changed mode of %s to %s' % (fn, oct(newmode)))
 
 def oops(msg):
-    print msg
+    print(msg)
     sys.exit(1)
 
 def msg(type, msg):
@@ -63,7 +63,7 @@ def msg(type, msg):
         head='\t'
     else:
         head='@@@@@'
-    print '[%f]%s%s' % (time.time(), head, msg)
+    print('[%f]%s%s' % (time.time(), head, msg))
     sys.stdout.flush()
 
 def runcmd(cmd):
@@ -76,7 +76,7 @@ def runcmd(cmd):
     if 0 == code:
         return True
     else:
-        print stdout, stderr
+        print(stdout, stderr)
         return False
 
 def getConfig(file, group, configName):
@@ -106,6 +106,44 @@ def check_access_rights(top):
         else:
             # unknown file type
             pass
+
+def copyfileobj(src, dst, length=None):
+    """Copy length bytes from fileobj src to fileobj dst.
+       If length is None, copy the entire content.
+    """
+    if length == 0:
+        return
+    if length is None:
+        shutil.copyfileobj(src, dst)
+        return
+
+    BUFSIZE = 16 * 1024
+    blocks, remainder = divmod(length, BUFSIZE)
+    for b in range(blocks):
+        buf = src.read(BUFSIZE)
+        if len(buf) < BUFSIZE:
+            raise OSError("end of file reached")
+        dst.write(buf)
+
+    if remainder != 0:
+        buf = src.read(remainder)
+        if len(buf) < remainder:
+            raise OSError("end of file reached")
+        dst.write(buf)
+    return
+
+def filemode(mode):
+    """Deprecated in this location; use stat.filemode."""
+    import warnings
+    warnings.warn("deprecated in favor of stat.filemode",
+                  DeprecationWarning, 2)
+    return stat.filemode(mode)
+
+def _safe_print(s):
+    encoding = getattr(sys.stdout, 'encoding', None)
+    if encoding is not None:
+        s = s.encode(encoding, 'backslashreplace').decode(encoding)
+    print(s + " ")
 
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
