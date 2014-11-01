@@ -145,11 +145,23 @@ def _safe_print(s):
         s = s.encode(encoding, 'backslashreplace').decode(encoding)
     print(s + " ")
 
+def setup_python_path(libdir):
+    """Sets up PYTHONPATH so that collectors can easily import common code."""
+    mydir = os.path.realpath(libdir)
+    if not os.path.isdir(mydir):
+        return
+    pythonpath = os.environ.get('PYTHONPATH', '')
+    if pythonpath:
+        pythonpath += ':'
+    pythonpath += mydir
+    os.environ['PYTHONPATH'] = pythonpath
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
 
     print(check_access_rights(os.path.dirname(os.path.abspath(__file__))))
+    setup_python_path("../")
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
