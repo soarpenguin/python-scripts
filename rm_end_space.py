@@ -7,8 +7,9 @@ import re
 import sys
 import argparse
 import logging
-from logging.handlers import RotatingFileHandler
 import subprocess
+from logging.handlers import RotatingFileHandler
+from stat import S_ISDIR, S_ISREG, ST_MODE
 
 try:
     import simplejson as json
@@ -80,7 +81,47 @@ def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
                                       '%(levelname)s: %(message)s'))
     LOG.addHandler(ch)
 
+def deal_with_file(filename):
+    """ deal with the file. """
+
+    if filename is None or not os.path.exists(filename):
+        errorMessage = "file of %s is not exists." % filename
+        error_exit(errorMessage)
+
+    cmd = 'sed -i \"s/[ \t]+$//g\"'
+    if not str(filename).strip().startswith("."):
+        cmd = cmd + " " + filename
+        ret, output, errout = exec_cmd_with_stderr(cmd)
+        if ret != 0:
+            LOG.error("Run cmd %s failed." % errout)
+        else:
+            LOG.info("Run cmd successed %s:\n %s" % (cmd, output))
+
+def deal_with_dir(dirpath):
+    """ recurse deal with the dir, skip the dir start with '.' """
+
+    if dirpath is None or not os.path.exists(dirpath):
+        errorMessage = "dir of %s is not exists." % dirpath
+        error_exit(errorMessage)
+
+    if not str(dirpath).strip().startswith("."):
+        for name in os.listdir(dirpath):
+            f = os.path.join(dirpath, name)
+            mode = os.stat(pathname).st_mode
+
+            if S_ISDIR(mode) and os.access(f, os.W_OK):
+                # directory, recurse into it
+                deal_with_dir(f)
+
+            elif S_ISREG(mode) and os.access(f, os.W_OK):
+                # file, deal with the file
+                deal_with_file(f)
+            else:
+                LOG.error("deal with the file %s failed" % f)
+
+
 def parse_argument():
+    """ parse the command line argument. """
 
     parser = argparse.ArgumentParser()
 
@@ -113,7 +154,9 @@ def parse_argument():
     options = parser.parse_args()
 
     if options.file is None and options.dir is None:
+        print("Error: parameter -d or -f must have one.\n")
         parser.print_usage()
+        sys.exit(1)
 
     return parser, options
 
@@ -126,24 +169,21 @@ if __name__ == '__main__':
 
     LOG.setLevel(logging.DEBUG)
 
-    if options.dir is not None and\
-        not os.path.exists(options.dir):
+    if options.dir is not None and not os.path.exists(options.dir):
         errorMessage = "dir of %s is not exists." % options.dir
         error_exit(errorMessage)
-    elif not os.path.exists(options.file):
+    elif options.file is not None and not os.path.exists(options.file):
         errorMessage = "file of %s is not exists." % options.file
         error_exit(errorMessage)
 
     cmd = 'sed -i \"s/[ \t]+$//g\"'
     if options.file is not None:
-        if not options.file.strip().startswith("."):
-            cmd = cmd + " " + options.file
-            print cmd
-            ret, output, errout = exec_cmd_with_stderr(cmd)
-            if ret != 0:
-                LOG.error("Run cmd %s failed." % errout)
-            else:
-                LOG.info("Run cmd successed %s:\n %s" % (cmd, output))
+        deal_with_file(options.file)
+    elif options.dir is not None:
+        deal_with_dir(options.dir)
+    else:
+        LOG.error("Error: parameter -d or -f must have one.")
+
 #
 #    try:
 #        print "\n" + "*" * 60
