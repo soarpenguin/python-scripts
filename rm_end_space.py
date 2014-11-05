@@ -88,14 +88,14 @@ def deal_with_file(filename):
         errorMessage = "file of %s is not exists." % filename
         error_exit(errorMessage)
 
-    cmd = 'sed -i \"s/[ \t]+$//g\"'
+    cmd = 'sed -i \'s/[ \t]*$//g\''
     if not str(filename).strip().startswith("."):
         cmd = cmd + " " + filename
         ret, output, errout = exec_cmd_with_stderr(cmd)
         if ret != 0:
             LOG.error("Run cmd %s failed." % errout)
         else:
-            LOG.info("Run cmd successed %s:\n %s" % (cmd, output))
+            LOG.info("Run cmd successed %s." % cmd)
 
 def deal_with_dir(dirpath):
     """ recurse deal with the dir, skip the dir start with '.' """
@@ -106,18 +106,20 @@ def deal_with_dir(dirpath):
 
     if not str(dirpath).strip().startswith("."):
         for name in os.listdir(dirpath):
-            f = os.path.join(dirpath, name)
-            mode = os.stat(pathname).st_mode
+            if not str(name).strip().startswith("."):
+                f = os.path.join(dirpath, name)
 
-            if S_ISDIR(mode) and os.access(f, os.W_OK):
-                # directory, recurse into it
-                deal_with_dir(f)
+                if os.path.isdir(f) and os.access(f, os.W_OK) and not os.path.islink(f):
+                    # directory, recurse into it
+                    deal_with_dir(f)
 
-            elif S_ISREG(mode) and os.access(f, os.W_OK):
-                # file, deal with the file
-                deal_with_file(f)
+                elif os.path.isfile(f) and os.access(f, os.W_OK):
+                    # file, deal with the file
+                    deal_with_file(f)
+                else:
+                    LOG.error("deal with the file %s failed" % f)
             else:
-                LOG.error("deal with the file %s failed" % f)
+                LOG.info("skip the file of %s" % name)
 
 
 def parse_argument():
@@ -178,8 +180,14 @@ if __name__ == '__main__':
 
     cmd = 'sed -i \"s/[ \t]+$//g\"'
     if options.file is not None:
-        deal_with_file(options.file)
+        filename = os.path.basename(options.file)
+        if not str(filename).startswith('.'):
+            options.file = os.path.abspath(options.file)
+            deal_with_file(options.file)
+        else:
+            LOG.info("skip the file of %s." % filename)
     elif options.dir is not None:
+        options.dir = os.path.abspath(options.dir)
         deal_with_dir(options.dir)
     else:
         LOG.error("Error: parameter -d or -f must have one.")
