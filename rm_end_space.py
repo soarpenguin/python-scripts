@@ -164,6 +164,11 @@ def parse_argument():
 
 ################# main route ######################
 if __name__ == '__main__':
+
+    if re.match("Darwin", os.uname()[0], re.I):
+        print("Error: Not supported for darwin system yet.")
+        exit(1)
+
     parser, options = parse_argument()
 
     setup_logging(options.logfile, options.max_bytes or None,
@@ -178,38 +183,20 @@ if __name__ == '__main__':
         errorMessage = "file of %s is not exists." % options.file
         error_exit(errorMessage)
 
-    cmd = 'sed -i \"s/[ \t]+$//g\"'
-    if options.file is not None:
-        filename = os.path.basename(options.file)
-        if not str(filename).startswith('.'):
-            options.file = os.path.abspath(options.file)
-            deal_with_file(options.file)
+    try:
+        if options.file is not None:
+            filename = os.path.basename(options.file)
+            if not str(filename).startswith('.'):
+                options.file = os.path.abspath(options.file)
+                deal_with_file(options.file)
+            else:
+                LOG.info("skip the file of %s." % filename)
+        elif options.dir is not None:
+            options.dir = os.path.abspath(options.dir)
+            deal_with_dir(options.dir)
         else:
-            LOG.info("skip the file of %s." % filename)
-    elif options.dir is not None:
-        options.dir = os.path.abspath(options.dir)
-        deal_with_dir(options.dir)
-    else:
-        LOG.error("Error: parameter -d or -f must have one.")
-
-#
-#    try:
-#        print "\n" + "*" * 60
-#        LOG.info("Now produce the command section.")
-#        if "command" in jstr.keys():
-#            command = jstr["command"]
-#            for cmd in command:
-#                LOG.debug("Now rum command: %s" % cmd)
-#                if len(cmd.strip()) != 0:
-#                    ret, output, errout = exec_cmd_with_stderr(cmd)
-#                    if ret != 0:
-#                        LOG.error("Run cmd %s failed." % errout)
-#                    else:
-#                        LOG.info("Run cmd successed %s:\n %s" % (cmd, output))
-#        else:
-#            LOG.info("No command section for produce.")
-#
-#    except Exception as e:
-#        print sys.exc_info()
-#        sys.exit(RET_FAILED)
+            LOG.error("Error: parameter -d or -f must have one.")
+    except Exception as e:
+        print sys.exc_info()
+        sys.exit(RET_FAILED)
 
