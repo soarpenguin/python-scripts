@@ -52,7 +52,7 @@ def parse_cmdline(argv):
                       metavar='int', default=0,
                       help='Number of interations limit ad: -n number')
     parser.add_option('-u', '--user', dest='user', metavar="str",
-                      default="all", help='Monitor only processes with an ' 
+                      default="all", help='Monitor only processes with an '
                       'effective UID or user name.')
     parser.add_option('-v', dest='verbose', action='store_true', default=False,
                       help='Display version information.')
@@ -94,7 +94,7 @@ def getpagesize():
 
 
 CPU_T = (
-    "u", "s", "n", "i", "w"        
+    "u", "s", "n", "i", "w"
 )
 def get_cpu_info():
     """get cpus infomation from /proc/stat """
@@ -121,7 +121,7 @@ PROC_T = (
     "pid", "cmd", "state", "ppid", "pgrp", "session", "tty", "tpgid", "flags",
     "min_flt", "cmin_flt", "maj_flt", "cmaj_flt", "utime", "stime", "cutime",
     "cstime", "priority", "nice", "timeout", "it_real_value", "start_time",
-    "vsize", "rss", "rss_rlim", "start_code", "end_code", "start_stack", 
+    "vsize", "rss", "rss_rlim", "start_code", "end_code", "start_stack",
     "kstk_esp", "kstk_eip", "signal", "blocked", "sigignore", "sigcatch",
     "wchan", "nswap", "cnswap", "exit_signal", "processor", "rtprio", "sched",
     "ruid", "euid", "suid", "fuid", "rgid", "egid", "sgid", "fgid", "vm_size",
@@ -212,7 +212,7 @@ def get_process_stat(proc_id):
     finally:
         f_cmdline.close()
 
-    ENVIRON = "/proc/" + proc_id + "/environ" 
+    ENVIRON = "/proc/" + proc_id + "/environ"
     try:
         f_environ = open(ENVIRON, "r")
         proc_t["environ"] = f_environ.readline()
@@ -234,7 +234,7 @@ def fmttime(seconds):
 
     if day > 1:
         result += "%d days, " % day
-    else: 
+    else:
         result += "%d day, " % day
 
     if hour > 0:
@@ -390,7 +390,7 @@ Window 1:Def: Cumulative mode Off.  System: Delay 3.0 secs; Secure mode Off.
   d or s    Set update interval
   W         Write configuration file
   q         Quit
-          ( commands shown with '.' require a visible task display window ) 
+          ( commands shown with '.' require a visible task display window )
 Press 'h' or '?' for help with Windows,
 any other key to continue """
     return usage
@@ -399,7 +399,7 @@ any other key to continue """
 def header(processes, memory):
     """ return string of top header. """
 
-    now = time.strftime("%H:%M:%S", time.localtime()) 
+    now = time.strftime("%H:%M:%S", time.localtime())
     uptime = read_uptime()[0]
     #uptime = fmttime(read_uptime()[0])
     (sysload1, sysload5, sysload15) = get_sys_loads()
@@ -439,7 +439,7 @@ def end():
     curses.nocbreak()
     curses.curs_set(1)
     curses.endwin()
-    
+
     #The end...
     sys.exit(0)
 
@@ -544,7 +544,7 @@ def main(argv):
         coutdown = Timer(delay)
         while not coutdown.finished():
             event = term_window.getch()
-            if event == ord("q"): 
+            if event == ord("q"):
                 break
             elif event == ord("h") or event == ord("?"):
                 term_window.erase()
@@ -560,7 +560,7 @@ def main(argv):
     #    if screen:
     #        screen.keypad(0)
     #    curses.echo()
-    #    traceback.print_exc() 
+    #    traceback.print_exc()
     #finally:
     #    curses.endwin()
 

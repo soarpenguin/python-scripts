@@ -128,4 +128,4 @@ def _setup_console():
 	formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
 	console.setFormatter(formatter)
 	logging.getLogger().addHandler(console)
-	
+

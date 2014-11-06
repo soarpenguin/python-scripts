@@ -72,7 +72,7 @@ def usage():
 Usage: stylechecker.py file or dir
 
     python stylechecker.py /path/to/the/c/code
-        or 
+        or
     python stylechecker.py /file/of/c/code """
 
     sys.exit(1)

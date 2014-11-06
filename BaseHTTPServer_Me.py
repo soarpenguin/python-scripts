@@ -5,7 +5,7 @@ import urlparse
 import cgi
 
 class PostHandler(BaseHTTPRequestHandler):
-    
+
     def do_POST(self):
         # Parse the form data posted
         form = cgi.FieldStorage(
@@ -38,7 +38,7 @@ class PostHandler(BaseHTTPRequestHandler):
         return
 
 class GetHandler(BaseHTTPRequestHandler):
-    
+
     def do_GET(self):
         parsed_path = urlparse.urlpasrse(self.path)
         message_parts = [

@@ -3,7 +3,7 @@ import sys
 import SocketServer
 
 logging.basicConfig(
-        level = logging.DEBUG, 
+        level = logging.DEBUG,
         format = '%(name)s: %(message)s',
     )
 
@@ -21,7 +21,7 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         self.logger.debug('handle')
-        
+
         data = self.request.recv(1024)
         self.logger.debug('recv()->"%s"', data)
         self.request.send(data)
@@ -31,7 +31,7 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
         return SocketServer.BaseRequestHandler.finish(self)
 
 class EchoServer(SocketServer.TCPServer):
-    
+
     def __init__(self, server_address,
             handle_class = EchoRequestHandler,):
         self.logger = logging.getLogger('EchoServer')

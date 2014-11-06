@@ -82,7 +82,7 @@ class VarList(object):
 
     def __len__(self):
         return len(self.varbinds)
- 
+
     def __getitem__(self, index):
         return self.varbinds[index]
 
@@ -293,7 +293,7 @@ def exec_cmd_with_stderr(command,
         p = subprocess.Popen(command,
                           stdout = subprocess.PIPE,
                           stderr = subprocess.PIPE,
-                          shell = useshell, 
+                          shell = useshell,
                           universal_newlines = universal_newlines,
                           env = env)
         output = p.stdout.read()
@@ -392,7 +392,7 @@ if __name__ == '__main__':
     atexit.register(shutdown)
 
     print valid_ident("_fedl")
-    
+
     _repr(var_list)
     #while True:
     #    time.sleep(1)

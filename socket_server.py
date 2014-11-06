@@ -19,10 +19,10 @@ try:
         # Wait for a connection
         print >>sys.stderr, 'waiting for a connection'
         connection, client_address = sock.accept()
-    
+
         try:
             print >>sys.stderr, 'connect from', client_address
-    
+
             # Receive the data in small chunks and retransmit it
             while True:
                 data = connection.recv(16)
@@ -33,7 +33,7 @@ try:
                 else:
                     print >>sys.stderr, 'no data from', client_address
                     break
-    
+
         finally:
             # Clear up the connection
             connection.close()

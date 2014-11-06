@@ -131,15 +131,15 @@ def parse_argument():
                 version = '%(prog)s 1.0'
             )
 
-    parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes', 
+    parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes',
                       type = int, default = 64 * 1024 * 1024,
                       help = 'Maximum bytes per a logfile.')
 
     parser.add_argument('--backup-count', action = 'store',
-                      dest = 'backup_count', type = int, default = 0, 
+                      dest = 'backup_count', type = int, default = 0,
                       help='Maximum number of logfiles to backup.')
 
-    parser.add_argument('--logfile', action = 'store', dest='logfile', 
+    parser.add_argument('--logfile', action = 'store', dest='logfile',
                       type = str, default = DEFAULT_LOG,
                       help = 'Filename where logs are written to.')
 

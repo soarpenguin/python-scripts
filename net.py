@@ -2,14 +2,14 @@
 
 import time
 import sys
- 
+
 if len(sys.argv) > 1:
     INTERFACE = sys.argv[1]
 else:
     INTERFACE = 'eth1'
 STATS = []
 print 'Interface:',INTERFACE
- 
+
 def rx():
     ifstat = open('/proc/net/dev').readlines()
     for interface in  ifstat:
@@ -17,18 +17,18 @@ def rx():
         if INTERFACE in interface:
             stat = float(interface.split()[1])
             STATS[0:] = [stat]
- 
+
 def tx():
     ifstat = open('/proc/net/dev').readlines()
     for interface in  ifstat:
         if INTERFACE in interface:
             stat = float(interface.split()[9])
             STATS[1:] = [stat]
- 
+
 print   'In         Out'
 rx()
 tx()
- 
+
 while   True:
     time.sleep(1)
     rxstat_o = list(STATS)

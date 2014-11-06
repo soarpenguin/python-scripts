@@ -115,7 +115,7 @@ def main():
                               device))
 
                 ret = is_device(device, 0)
-                # if a device or a partition, calculate the svctm/await/util                
+                # if a device or a partition, calculate the svctm/await/util
                 if ret:
                     stats = dict(zip(FIELDS_DISK, values[3:]))
                     nr_ios = float(stats.get("read_requests")) + float(stats.get("write_requests"))

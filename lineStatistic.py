@@ -35,7 +35,7 @@ def parse_cmdline(argv):
 
 def error_exit(msg, status=1):
     #sys.stderr.write('Error: %s\n' % msg)
-    err_msg = "%sError:%s %s\n" % (RED, COL_RESET, msg) 
+    err_msg = "%sError:%s %s\n" % (RED, COL_RESET, msg)
     sys.stderr.write(err_msg)
     sys.exit(status)
 

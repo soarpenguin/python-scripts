@@ -26,7 +26,7 @@ except:
 
 logger = logging.getLogger()
 Rthandler = RotatingFileHandler(
-        LOG_FILENAME, 
+        LOG_FILENAME,
         mode='a',
         maxBytes = 10 * 1024 * 1024,
         backupCount=5
@@ -37,7 +37,7 @@ formatter = logging.Formatter(
     datefmt = '%F %H:%M:%S'
 )
 Rthandler.setFormatter(formatter)
-logger.addHandler(Rthandler) 
+logger.addHandler(Rthandler)
 logger.setLevel(logging.DEBUG)
 
 logger.critical("This is a critical message.")

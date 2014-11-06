@@ -1,5 +1,5 @@
 #!/usr/bin/env python
- 
+
 import libtorrent as lt
 import sys
 import os
@@ -8,15 +8,15 @@ from optparse import OptionParser
 import socket
 import struct
 import fcntl
- 
+
 def get_interface_ip(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s',
                             ifname[:15]))[20:24])
 def ip2long(ip):
     return reduce(lambda a,b:(a<<8)+b,[int(i) for i in ip.split('.')])
- 
- 
+
+
 def get_wan_ip_address():
     interfaces = set(['eth0', 'eth1', 'eth2', 'eth3', 'em1', 'em2', 'em3', 'em4'])
     ip = ''
@@ -29,45 +29,45 @@ def get_wan_ip_address():
                 return ip
         except:
             pass
- 
+
     return ip
- 
+
 def make_torrent(path, save):
     fs = lt.file_storage()
     lt.add_files(fs, path)
     if fs.num_files() == 0:
         print 'no files added'
         sys.exit(1)
- 
+
     input = os.path.abspath(path)
     basename = os.path.basename(path)
     t = lt.create_torrent(fs, 0, 4 * 1024 * 1024)
- 
+
     t.add_tracker("http://10.0.1.5:8760/announce")
     t.set_creator('libtorrent %s' % lt.version)
- 
+
     lt.set_piece_hashes(t, os.path.split(input)[0], lambda x: sys.stderr.write('.'))
     sys.stderr.write('\n')
- 
+
     save = os.path.dirname(input)
     save = "%s/%s.torrent" % (save, basename)
     f=open(save, "wb")
     f.write(lt.bencode(t.generate()))
     f.close()
     print "the bt torrent file is store at %s" % save
- 
- 
+
+
 def dl_status(handle):
     while not (handle.is_seed()):
         s = handle.status()
- 
+
         state_str = ['queued', 'checking', 'downloading metadata', \
                 'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
         print '\ractive_time: %d, %.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d, seeds: %d) %s' % \
                 (s.active_time, s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, \
                 s.num_peers, s.num_seeds, state_str[s.state]),
         sys.stdout.flush()
- 
+
         time.sleep(1)
 
 def seed_status(handle, seedtime=100):
@@ -77,30 +77,30 @@ def seed_status(handle, seedtime=100):
     while seedtime > 0:
         seedtime -= 1
         s = handle.status()
- 
+
         state_str = ['queued', 'checking', 'downloading metadata', \
                 'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
         print '\rseed_time: %d, %.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d, seeds: %d) %s' % \
                 (s.active_time, s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, \
                 s.num_peers, s.num_seeds, state_str[s.state]),
         sys.stdout.flush()
- 
+
         time.sleep(1)
- 
+
 def remove_torrents(torrent, session):
     session.remove_torrent(torrent)
- 
+
 def read_alerts(session):
     alert = session.pop_alert()
     while alert:
         #print alert, alert.message()
         alert = session.pop_alert()
- 
+
 def download(torrent, path, upload_rate_limit=0, seedtime=100):
     try:
         session = lt.session()
         session.set_alert_queue_size_limit(1024 * 1024)
- 
+
         sts = lt.session_settings()
         sts.ssl_listen = False
         sts.user_agent = "Thunder deploy system"
@@ -118,20 +118,20 @@ def download(torrent, path, upload_rate_limit=0, seedtime=100):
         sts.allow_multiple_connections_per_ip = True
         sts.max_out_request_queue = 128
         sts.request_queue_size = 3
- 
+
         sts.use_read_cache = False
         session.set_settings(sts)
- 
+
         session.set_alert_mask(lt.alert.category_t.tracker_notification | lt.alert.category_t.status_notification)
         session.set_alert_mask(lt.alert.category_t.status_notification)
- 
+
         ipaddr = get_wan_ip_address()
         #print ipaddr
         if ipaddr == "":
             session.listen_on(6881, 6881)
         else:
             session.listen_on(6881, 6881, ipaddr)
- 
+
         limit = int(upload_rate_limit)
         if limit>=100:
             session.set_upload_rate_limit(limit*1024)
@@ -145,9 +145,9 @@ def download(torrent, path, upload_rate_limit=0, seedtime=100):
             'auto_managed': True,
             'ti': torrent_info,
         }
- 
+
         handle = session.add_torrent(add_params)
- 
+
         read_alerts(session)
         st = time.time()
         dl_status(handle)
@@ -156,19 +156,19 @@ def download(torrent, path, upload_rate_limit=0, seedtime=100):
         sys.stdout.write('\n')
         handle.super_seeding()
         seed_status(handle, seedtime)
- 
+
         remove_torrents(handle, session)
         assert len(session.get_torrents()) == 0
- 
+
     finally:
         print 'download finished'
- 
+
 if __name__ == '__main__':
     usage = "usage: %prog [options] \n \
       %prog -d -f <torrent file=""> -s <file save="" path="">\n \
       or \n \
       %prog -m -p <file or="" dir=""> -s <torrent save="" path="">\n"
- 
+
     parser = OptionParser(usage=usage)
     parser.add_option("-d", "--download", dest="download",
             help="start to download file", action="store_false", default=True)

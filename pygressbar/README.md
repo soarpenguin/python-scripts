@@ -6,7 +6,7 @@ PygressBar
 Description
 -----------
 
-PygressBar is a progressbar utility for our command line tools, 
+PygressBar is a progressbar utility for our command line tools,
 scripts... Some of features:
 
 * Different flavours with premade bars
@@ -17,7 +17,7 @@ scripts... Some of features:
 * Python 3 compatible
 
 
-![Pygressbar in action](https://gist.github.com/slok/3885420/raw/34bab2c82222a50566fab6e3d76e43fc9c860e7c/pygress.png "Pygressbar in action")   
+![Pygressbar in action](https://gist.github.com/slok/3885420/raw/34bab2c82222a50566fab6e3d76e43fc9c860e7c/pygress.png "Pygressbar in action")
 
 
 Requirements
@@ -30,7 +30,7 @@ Bar flavours
 
 ###Simple bar###
 
-The simple bar is a bar that its head is `>` its body area is `=` and 
+The simple bar is a bar that its head is `>` its body area is `=` and
 the empty area is ` `. It's length always is 20. Example
 
     [==============>     ]
@@ -72,8 +72,8 @@ has the numeric percent progress. Example
 
 ###Simple Animated bar###
 
-The animated bar animates the head. The animation is created with a tuple. 
-By default will be the classic spinner: `|`, `/`, `-`, `\`. Also it has the 
+The animated bar animates the head. The animation is created with a tuple.
+By default will be the classic spinner: `|`, `/`, `-`, `\`. Also it has the
 attribute `speed` that is the speed between 0 (slowest) and 2000 (the highest).
 The spinner speed animation is something tricky and depends on the printed (or
 getted) times, so it's recommended to test the best speed for your needs.
@@ -88,14 +88,14 @@ Example:
 ###Simple Color bar###
 
 The simple color bar is the same bar as the simple bar but with colors (ANSI
-terminal colors: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors). To 
-customize the colors, each part has a property: `left_limit_clr`, 
+terminal colors: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors). To
+customize the colors, each part has a property: `left_limit_clr`,
 `right_limit_clr`, `head_clr`, `filled_clr`, `empty_clr` Pygressbar comes with
-various colors: `RED`, `BLUE`, `GREEN`, `MAGENTA`, `WHITE`, `COL_RESET`, 
-`YELLOW` and `CYAN` 
+various colors: `RED`, `BLUE`, `GREEN`, `MAGENTA`, `WHITE`, `COL_RESET`,
+`YELLOW` and `CYAN`
 Example:
 
-![Pygressbar in action](https://gist.github.com/slok/3885420/raw/b0b754ada28a3b9bd5ead6e6edb9cec18d402ecc/pygress_color.png"Pygressbar in action")  
+![Pygressbar in action](https://gist.github.com/slok/3885420/raw/b0b754ada28a3b9bd5ead6e6edb9cec18d402ecc/pygress_color.png"Pygressbar in action")
 
 
 
@@ -108,7 +108,7 @@ The usage is very simple. Create an instance of the bar that you want:
 
 Now we can obtain the progress of the bar
 
-    >>> bar.progress  
+    >>> bar.progress
     0
 
 And increase and decrease
@@ -116,7 +116,7 @@ And increase and decrease
     >>> bar.increase(50)
     >>> bar.progress
     50
-    >>> bar.decrease(3) 
+    >>> bar.decrease(3)
     >>> bar.progress
     47
 
@@ -188,6 +188,6 @@ Xabier (slok) Larrakoetxea - (slok69 [at] gmail.com)
 
 License
 -------
-3 clause/New BSD license: 
-[opensource](http://www.opensource.org/licenses/BSD-3-Clause), 
+3 clause/New BSD license:
+[opensource](http://www.opensource.org/licenses/BSD-3-Clause),
 [wikipedia](http://en.wikipedia.org/wiki/BSD_licenses)

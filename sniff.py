@@ -42,7 +42,7 @@ def dumphex(s):
     for i in xrange(0,len(bytes)/16):
         print '        %s' % string.join(bytes[i*16:(i+1)*16],' ')
     print '        %s' % string.join(bytes[(i+1)*16:],' ')
-        
+
 
 def print_packet(pktlen, data, timestamp):
     if not data:
@@ -62,7 +62,7 @@ def print_packet(pktlen, data, timestamp):
         print '    header checksum: %d' % decoded['checksum']
         print '    data:'
         dumphex(decoded['data'])
- 
+
 
 if __name__=='__main__':
 
@@ -94,13 +94,13 @@ if __name__=='__main__':
         #    p.loop(1, print_packet)
 
         # as is the next() method
-        # p.next() returns a (pktlen, data, timestamp) tuple 
+        # p.next() returns a (pktlen, data, timestamp) tuple
         #    apply(print_packet,p.next())
     except KeyboardInterrupt:
         print '%s' % sys.exc_type
         print 'shutting down'
         print '%d packets received, %d packets dropped, %d packets dropped by interface' % p.stats()
-    
+
 
 
 # vim:set ts=4 sw=4 et:
