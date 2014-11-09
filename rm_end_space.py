@@ -28,7 +28,7 @@ RET_OK           = 0
 RET_FAILED       = 1
 RET_INVALID_ARGS = 2
 
-def error_exit(msg, status=1):
+def error_exit(msg, status=RET_FAILED):
     LOG.error('%s\n' % msg)
     sys.exit(status)
 
@@ -158,7 +158,7 @@ def parse_argument():
     if options.file is None and options.dir is None:
         print("Error: parameter -d or -f must have one.\n")
         parser.print_usage()
-        sys.exit(1)
+        sys.exit(RET_FAILED)
 
     return parser, options
 
@@ -197,6 +197,6 @@ if __name__ == '__main__':
         else:
             LOG.error("Error: parameter -d or -f must have one.")
     except Exception as e:
-        print sys.exc_info()
+        print(sys.exc_info())
         sys.exit(RET_FAILED)
 

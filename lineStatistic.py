@@ -68,7 +68,7 @@ def main(argv):
     total = 0
     array.sort(lambda (k1,v1),(k2,v2): cmp(v2,v1))
     for (key, value) in array:
-        print "%s: %d" % (key, value)
+        print("%s: %d" % (key, value))
         total += value
 
     message("+" * 50)
