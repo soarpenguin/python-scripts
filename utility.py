@@ -13,6 +13,14 @@ from stat import S_ISDIR, S_ISREG, ST_MODE
 join = os.path.join
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
 
+def _callable(obj):
+    return hasattr(obj, '__call__') or hasattr(obj, '__bases__')
+
+def _ensure_value(namespace, name, value):
+    if getattr(namespace, name, None) is None:
+        setattr(namespace, name, value)
+    return getattr(namespace, name)
+
 def mkdir(path):
     if not os.path.exists(path):
         print('Creating %s' % path)
