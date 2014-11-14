@@ -164,6 +164,24 @@ def setup_python_path(libdir):
     pythonpath += mydir
     os.environ['PYTHONPATH'] = pythonpath
 
+def shell_expand_path(path):
+    ''' shell_expand_path is needed as os.path.expanduser does not work
+        when path is None. '''
+    if path:
+        path = os.path.expanduser(os.path.expandvars(path))
+    return path
+
+# copied from utils, avoid circular reference fun :)
+def mk_boolean(value):
+    if value is None:
+        return False
+    val = str(value)
+    if val.lower() in [ "true", "t", "y", "1", "yes" ]:
+        return True
+    else:
+        return False
+
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
