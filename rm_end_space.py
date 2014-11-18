@@ -81,6 +81,7 @@ def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
                                       '%(levelname)s: %(message)s'))
     LOG.addHandler(ch)
 
+
 def deal_with_file(filename):
     """ deal with the file. """
 
@@ -89,13 +90,19 @@ def deal_with_file(filename):
         error_exit(errorMessage)
 
     cmd = 'sed -i \'s/[ \t]*$//g\''
-    if not str(filename).strip().startswith("."):
+    # Skip files that end with certain extensions or characters
+    if any(str(filename).endswith(ext) for ext in ("~", ".bak", ".ini", ".pyc", ".pyo")):
+        LOG.info("skip the file of %s" % name)
+    elif str(dirpath).startswith('.') and not dirpath.startswith('./'):
+        LOG.info("skip the file of %s" % name)
+    else:
         cmd = cmd + " " + filename
         ret, output, errout = exec_cmd_with_stderr(cmd)
         if ret != 0:
             LOG.error("Run cmd %s failed." % errout)
         else:
             LOG.info("Run cmd successed %s." % cmd)
+
 
 def deal_with_dir(dirpath):
     """ recurse deal with the dir, skip the dir start with '.' """
@@ -104,7 +111,10 @@ def deal_with_dir(dirpath):
         errorMessage = "dir of %s is not exists." % dirpath
         error_exit(errorMessage)
 
-    if not str(dirpath).strip().startswith("."):
+    dirpath = str(dirpath).strip()
+    if str(dirpath).startswith('.') and not dirpath.startswith('./'):
+        LOG.info("skip the dir of %s" % name)
+    else:
         for name in os.listdir(dirpath):
             if not str(name).strip().startswith("."):
                 f = os.path.join(dirpath, name)
