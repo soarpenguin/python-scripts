@@ -97,9 +97,9 @@ def deal_with_file(filename):
     cmd = 'sed -i \'s/[ \t]*$//g\''
     # Skip files that end with certain extensions or characters
     if any(str(filename).endswith(ext) for ext in EXCLUDE_EXT):
-        LOG.info("skip the file of %s" % name)
+        LOG.info("skip the file of %s" % filename)
     elif str(filename).startswith('.') and not str(filename).startswith('./'):
-        LOG.info("skip the file of %s" % name)
+        LOG.info("skip the file of %s" % filename)
     else:
         cmd = cmd + " " + filename
         ret, output, errout = exec_cmd_with_stderr(cmd)
@@ -118,7 +118,7 @@ def deal_with_dir(dirpath):
 
     dirpath = str(dirpath).strip()
     if str(dirpath).startswith('.') and not dirpath.startswith('./'):
-        LOG.info("skip the dir of %s" % name)
+        LOG.info("skip the dir of %s" % dirpath)
     else:
         for name in os.listdir(dirpath):
             if not str(name).strip().startswith("."):
