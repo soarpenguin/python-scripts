@@ -24,6 +24,11 @@ scriptname = os.path.splitext(script)[0]
 DEFAULT_LOG = "/var/log/" + scriptname
 LOG = logging.getLogger(scriptname)
 
+EXCLUDE_EXT = (
+    "~", ".bak", ".ini", ".pyc", "pyo",
+    "tags", ".out"
+)
+
 RET_OK           = 0
 RET_FAILED       = 1
 RET_INVALID_ARGS = 2
@@ -91,7 +96,7 @@ def deal_with_file(filename):
 
     cmd = 'sed -i \'s/[ \t]*$//g\''
     # Skip files that end with certain extensions or characters
-    if any(str(filename).endswith(ext) for ext in ("~", ".bak", ".ini", ".pyc", ".pyo")):
+    if any(str(filename).endswith(ext) for ext in EXCLUDE_EXT):
         LOG.info("skip the file of %s" % name)
     elif str(filename).startswith('.') and not str(filename).startswith('./'):
         LOG.info("skip the file of %s" % name)
@@ -177,7 +182,7 @@ if __name__ == '__main__':
 
     if re.match("Darwin", os.uname()[0], re.I):
         print("Error: Not supported for darwin system yet.")
-        exit(1)
+        exit(RET_FAILED)
 
     parser, options = parse_argument()
 
