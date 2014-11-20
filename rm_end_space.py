@@ -93,7 +93,7 @@ def deal_with_file(filename):
     # Skip files that end with certain extensions or characters
     if any(str(filename).endswith(ext) for ext in ("~", ".bak", ".ini", ".pyc", ".pyo")):
         LOG.info("skip the file of %s" % name)
-    elif str(dirpath).startswith('.') and not dirpath.startswith('./'):
+    elif str(filename).startswith('.') and not str(filename).startswith('./'):
         LOG.info("skip the file of %s" % name)
     else:
         cmd = cmd + " " + filename
