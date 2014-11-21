@@ -190,6 +190,18 @@ def unquote(data):
         return data[1:-1]
     return data
 
+import fcntl
+def buffer_input():
+    origfl = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
+    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, origfl | os.O_NONBLOCK)
+    try:
+        stdin = sys.stdin.read()
+    except IOError: # Stdin contained no information
+        stdin = ""
+    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, origfl)
+    return stdin
+
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
