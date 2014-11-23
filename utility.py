@@ -201,6 +201,17 @@ def buffer_input():
     fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, origfl)
     return stdin
 
+def choose_one(choices, prompt):
+    for idx, choice in enumerate(choices):
+        print('%d. %s' % (idx + 1, choice))
+    selected = None
+    while not selected or selected <= 0 or selected > len(choices):
+        selected = raw_input(prompt)
+        try:
+            selected = int(selected)
+        except ValueError:
+            selected = None
+    return choices[selected - 1]
 
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
@@ -211,3 +222,4 @@ if __name__ == '__main__':
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
+
