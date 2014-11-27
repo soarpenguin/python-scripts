@@ -13,6 +13,15 @@ from stat import S_ISDIR, S_ISREG, ST_MODE
 join = os.path.join
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
 
+def _import_localpath(path):
+    import os
+    if not os.path.isdir(path):
+        print("[notice] import local path %s failed." % path)
+        return 0
+
+    sys.path.append(path)
+    return 1
+
 def _callable(obj):
     return hasattr(obj, '__call__') or hasattr(obj, '__bases__')
 
@@ -219,6 +228,9 @@ if __name__ == '__main__':
 
     print(check_access_rights(os.path.dirname(os.path.abspath(__file__))))
     setup_python_path("../")
+
+    _import_localpath("../")
+    print sys.path
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
