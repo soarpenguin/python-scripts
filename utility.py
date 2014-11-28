@@ -9,6 +9,7 @@ import optparse
 import shutil
 import re
 from stat import S_ISDIR, S_ISREG, ST_MODE
+import terminal
 
 join = os.path.join
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
@@ -231,6 +232,8 @@ if __name__ == '__main__':
 
     _import_localpath("../")
     print sys.path
+
+    print terminal.terminal_size()
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
