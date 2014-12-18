@@ -223,6 +223,31 @@ def choose_one(choices, prompt):
             selected = None
     return choices[selected - 1]
 
+from types import *
+from cStringIO import StringIO
+
+def splitLine(line, COLS=80, indent=10):
+    indent = " " * indent
+    width = COLS - (len(indent) + 1)
+    if indent and width < 15:
+        width = COLS - 2
+        indent = " "
+    s = StringIO()
+    i = 0
+    for word in line.split():
+        if i == 0:
+            s.write(indent+word)
+            i = len(word)
+            continue
+        if i + len(word) >= width:
+            s.write('\n'+indent+word)
+            i = len(word)
+            continue
+        s.write(' '+word)
+        i += len(word) + 1
+    return s.getvalue()
+
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
