@@ -10,6 +10,7 @@ import shutil
 import re
 from stat import S_ISDIR, S_ISREG, ST_MODE
 import terminal
+import pipes
 
 join = os.path.join
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
@@ -246,6 +247,17 @@ def splitLine(line, COLS=80, indent=10):
         s.write(' '+word)
         i += len(word) + 1
     return s.getvalue()
+
+
+def tarCreate(path):
+    if path:
+        path = path.rstrip('/') or '/'
+    else:
+        path = '.'
+
+    dirname = pipes.quote(os.path.dirname(path) or '.')
+    basename = pipes.quote(os.path.basename(path) or '/')
+    return 'tar c -C %s %s' % (dirname, basename)
 
 
 if __name__ == '__main__':
