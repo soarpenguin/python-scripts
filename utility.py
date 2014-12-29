@@ -260,6 +260,16 @@ def tarCreate(path):
     return 'tar c -C %s %s' % (dirname, basename)
 
 
+UNITS = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
+
+def human_unit(size):
+    """Return a string of the form '12.34 MiB' given a size in bytes."""
+    for i in xrange(len(UNITS) - 1, 0, -1):
+        base = 2.0 ** (10 * i)
+        if 2 * base < size:
+            return '%.2f %s' % ((float(size) / base), UNITS[i])
+    return str(size) + ' ' + UNITS[0]
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
@@ -271,6 +281,7 @@ if __name__ == '__main__':
     print sys.path
 
     print terminal.terminal_size()
+    print human_unit(12400000)
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
