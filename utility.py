@@ -227,7 +227,7 @@ def choose_one(choices, prompt):
 from types import *
 from cStringIO import StringIO
 
-def splitLine(line, COLS=80, indent=10):
+def split_line(line, COLS=80, indent=10):
     indent = " " * indent
     width = COLS - (len(indent) + 1)
     if indent and width < 15:
@@ -249,7 +249,7 @@ def splitLine(line, COLS=80, indent=10):
     return s.getvalue()
 
 
-def tarCreate(path):
+def tar_create(path):
     if path:
         path = path.rstrip('/') or '/'
     else:
@@ -259,6 +259,21 @@ def tarCreate(path):
     basename = pipes.quote(os.path.basename(path) or '/')
     return 'tar c -C %s %s' % (dirname, basename)
 
+
+def process_checkpoint(program):
+    '''
+       this helper method checks if program is available in the sys 
+       if not fires up one
+    '''
+    try:
+        cmd = "pgrep " + program
+        subprocess.check_output(cmd, shell=True)
+    except:
+        # logger.warning('Your program is offline, will try to launch it now!', extra=extra_information)
+        # close_fds = True argument is the flag that is responsible
+        # for Popen to launch the process completely independent
+        subprocess.Popen(program, close_fds=True, shell=True)
+        time.sleep(3)
 
 UNITS = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
 
@@ -282,6 +297,7 @@ if __name__ == '__main__':
 
     print terminal.terminal_size()
     print human_unit(12400000)
+    process_checkpoint("mysqld")
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
