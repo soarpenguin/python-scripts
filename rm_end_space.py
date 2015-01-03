@@ -94,7 +94,11 @@ def deal_with_file(filename):
         errorMessage = "file of %s is not exists." % filename
         error_exit(errorMessage)
 
-    cmd = 'sed -i \'s/[ \t]*$//g\''
+    if re.match("Darwin", os.uname()[0], re.I):
+        cmd = 'sed -i \'\' \'s/[ ]*$//g\''
+    else:
+        cmd = 'sed -i \'s/[ \t]*$//g\''
+
     # Skip files that end with certain extensions or characters
     if any(str(filename).endswith(ext) for ext in EXCLUDE_EXT):
         LOG.info("skip the file of %s" % filename)
@@ -138,7 +142,7 @@ def deal_with_dir(dirpath):
 
 
 INDENT = ' ' * 2
-def _format_help(help_info, choices=None):
+def format_help(help_info, choices=None):
     if isinstance(help_info, list):
         help_str_list = help_info[:]
     else:
@@ -165,24 +169,24 @@ def parse_argument():
 
     parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes',
                       type = int, default = 64 * 1024 * 1024,
-                      help = _format_help('Maximum bytes per a logfile.'))
+                      help = format_help('Maximum bytes per a logfile.'))
 
     parser.add_argument('--backup-count', action = 'store',
                       dest = 'backup_count', type = int, default = 0,
-                      help = _format_help('Maximum number of logfiles to backup.'))
+                      help = format_help('Maximum number of logfiles to backup.'))
 
     parser.add_argument('--logfile', action = 'store', dest='logfile',
                       type = str, default = DEFAULT_LOG,
-                      help = _format_help('Filename where logs are written to.'))
+                      help = format_help('Filename where logs are written to.'))
 
     parser.add_argument('-d', '--dir', action = 'store',
                 dest = 'dir', type = str,
-                help = _format_help('Dir to recursive remove spaces at the end of the line.')
+                help = format_help('Dir to recursive remove spaces at the end of the line.')
             )
 
     parser.add_argument('-f', '--file', action = 'store',
                 dest = 'file', type = str,
-                help = _format_help('File name for remove spaces at the end of the line.')
+                help = format_help('File name for remove spaces at the end of the line.')
             )
 
     options = parser.parse_args()
@@ -196,10 +200,6 @@ def parse_argument():
 
 ################# main route ######################
 if __name__ == '__main__':
-
-    if re.match("Darwin", os.uname()[0], re.I):
-        print("Error: Not supported for darwin system yet.")
-        exit(RET_FAILED)
 
     parser, options = parse_argument()
 
