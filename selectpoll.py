@@ -11,7 +11,7 @@ class poll:
     def __init__(self):
         self.rlist = []
         self.wlist = []
-        
+
     def register(self, f, t):
         if type(f) != IntType:
             f = f.fileno()

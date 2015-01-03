@@ -262,7 +262,7 @@ def tar_create(path):
 
 def process_checkpoint(program):
     '''
-       this helper method checks if program is available in the sys 
+       this helper method checks if program is available in the sys
        if not fires up one
     '''
     try:
