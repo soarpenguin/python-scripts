@@ -137,6 +137,22 @@ def deal_with_dir(dirpath):
                 LOG.info("skip the file of %s" % name)
 
 
+def _format_help(help_info, choices=None):
+    if isinstance(help_info, list):
+        help_str_list = help_info[:]
+    else:
+        help_str_list = [help_info]
+
+    if choices:
+        help_str_list.extend([
+            '%s%s - %s' % (INDENT, k, v) for k, v in choices.items()
+        ])
+
+    help_str_list.append(INDENT + '(DEFAULT: %(default)s)')
+
+    return os.linesep.join(help_str_list)
+
+
 def parse_argument():
     """ parse the command line argument. """
 
@@ -148,24 +164,24 @@ def parse_argument():
 
     parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes',
                       type = int, default = 64 * 1024 * 1024,
-                      help = 'Maximum bytes per a logfile.')
+                      help = _format_help('Maximum bytes per a logfile.'))
 
     parser.add_argument('--backup-count', action = 'store',
                       dest = 'backup_count', type = int, default = 0,
-                      help='Maximum number of logfiles to backup.')
+                      help = _format_help('Maximum number of logfiles to backup.'))
 
     parser.add_argument('--logfile', action = 'store', dest='logfile',
                       type = str, default = DEFAULT_LOG,
-                      help = 'Filename where logs are written to.')
+                      help = _format_help('Filename where logs are written to.'))
 
     parser.add_argument('-d', '--dir', action = 'store',
                 dest = 'dir', type = str,
-                help = 'Dir to recursive remove spaces at the end of the line.'
+                help = _format_help('Dir to recursive remove spaces at the end of the line.')
             )
 
     parser.add_argument('-f', '--file', action = 'store',
                 dest = 'file', type = str,
-                help = 'File name for remove spaces at the end of the line.'
+                help = _format_help('File name for remove spaces at the end of the line.')
             )
 
     options = parser.parse_args()
