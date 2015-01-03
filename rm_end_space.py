@@ -137,6 +137,7 @@ def deal_with_dir(dirpath):
                 LOG.info("skip the file of %s" % name)
 
 
+INDENT = ' ' * 2
 def _format_help(help_info, choices=None):
     if isinstance(help_info, list):
         help_str_list = help_info[:]
