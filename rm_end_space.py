@@ -9,7 +9,6 @@ import argparse
 import logging
 import subprocess
 from logging.handlers import RotatingFileHandler
-from stat import S_ISDIR, S_ISREG, ST_MODE
 
 try:
     import simplejson as json
@@ -24,16 +23,19 @@ scriptname = os.path.splitext(script)[0]
 DEFAULT_LOG = "/var/log/" + scriptname
 LOG = logging.getLogger(scriptname)
 
+# array of file ext for exclude.
 EXCLUDE_EXT = (
     "~", ".bak", ".ini", ".pyc", "pyo",
     "tags", ".out"
 )
 
+# ret parameter declear.
 RET_OK           = 0
 RET_FAILED       = 1
 RET_INVALID_ARGS = 2
 
 def error_exit(msg, status=RET_FAILED):
+    """ error message display and exit."""
     LOG.error('%s\n' % msg)
     sys.exit(status)
 
@@ -94,6 +96,7 @@ def deal_with_file(filename):
         errorMessage = "file of %s is not exists." % filename
         error_exit(errorMessage)
 
+    # match system sed cmd parameter diff.
     if re.match("Darwin", os.uname()[0], re.I):
         cmd = 'sed -i \'\' \'s/[ ]*$//g\''
     else:
@@ -143,6 +146,8 @@ def deal_with_dir(dirpath):
 
 INDENT = ' ' * 2
 def format_help(help_info, choices=None):
+    """ format help infomation string. """
+
     if isinstance(help_info, list):
         help_str_list = help_info[:]
     else:
@@ -191,8 +196,9 @@ def parse_argument():
 
     options = parser.parse_args()
 
-    if options.file is None and options.dir is None:
-        print("Error: parameter -d or -f must have one.\n")
+    if (options.file is None and options.dir is None) \
+                    or (options.file and options.dir):
+        print("Error: parameter -d or -f just for one.\n")
         parser.print_usage()
         sys.exit(RET_FAILED)
 
