@@ -285,6 +285,13 @@ def human_unit(size):
             return '%.2f %s' % ((float(size) / base), UNITS[i])
     return str(size) + ' ' + UNITS[0]
 
+def get_pwd():
+    try:
+        return os.getcwdu()
+    except OSError:
+        print("Current directory no longer exists.", file=sys.stderr)
+        raise
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
@@ -301,4 +308,6 @@ if __name__ == '__main__':
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
+
+
 
