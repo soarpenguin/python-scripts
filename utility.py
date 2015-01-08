@@ -260,6 +260,16 @@ def tar_create(path):
     return 'tar c -C %s %s' % (dirname, basename)
 
 
+def create_dir(path):
+    """Creates a directory atomically."""
+
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
 def process_checkpoint(program):
     '''
        this helper method checks if program is available in the sys
@@ -285,11 +295,14 @@ def human_unit(size):
             return '%.2f %s' % ((float(size) / base), UNITS[i])
     return str(size) + ' ' + UNITS[0]
 
+if sys.version_info[0] == 3:
+    os.getcwdu = os.getcwd
+
 def get_pwd():
     try:
         return os.getcwdu()
     except OSError:
-        print("Current directory no longer exists.", file=sys.stderr)
+        print("Current directory no longer exists.")
         raise
 
 if __name__ == '__main__':
