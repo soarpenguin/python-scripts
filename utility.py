@@ -305,6 +305,14 @@ def get_pwd():
         print("Current directory no longer exists.")
         raise
 
+def is_number(s):
+    try:
+        float(s) # for int, long and float
+    except ValueError:
+        return False
+    return True
+
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
@@ -321,6 +329,5 @@ if __name__ == '__main__':
 #assert expression1, expression2
 #if __debug__:
 #    if not expression1: raise AssertionError(expression2)
-
 
 
