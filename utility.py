@@ -337,9 +337,43 @@ def nsecs_str(nsecs):
     str = "%5u.%09u" % (nsecs_secs(nsecs), nsecs_nsecs(nsecs)),
     return str
 
+import itertools
+MAGIC_BRACKETS = re.compile('({([^}]+)})')
+def expand_paths(path):
+    """When given a path with brackets, expands it to return all permutations
+       of the path with expanded brackets, similar to ant.
+       >>> expand_paths('../{a,b}/{c,d}')
+       ['../a/c', '../a/d', '../b/c', '../b/d']
+       >>> expand_paths('../{a,b}/{a,b}.py')
+       ['../a/a.py', '../a/b.py', '../b/a.py', '../b/b.py']
+       >>> expand_paths('../{a,b,c}/{a,b,c}')
+       ['../a/a', '../a/b', '../a/c', '../b/a', '../b/b', '../b/c', '../c/a', '../c/b', '../c/c']
+       >>> expand_paths('test')
+       ['test']
+       >>> expand_paths('')
+    """
+    pr = itertools.product
+    parts = MAGIC_BRACKETS.findall(path)
+
+    if not path:
+        return
+
+    if not parts:
+        return [path]
+
+    permutations = [[(p[0], i, 1) for i in p[1].split(',')] for p in parts]
+    return [_replace_all(path, i) for i in pr(*permutations)]
+
+def _replace_all(path, replacements):
+    for j in replacements:
+        path = path.replace(*j)
+    return path
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
+    paths = expand_paths('../{a,b,c}/{a,b,c}')
+    print paths
 
     print(check_access_rights(os.path.dirname(os.path.abspath(__file__))))
     setup_python_path("../")
