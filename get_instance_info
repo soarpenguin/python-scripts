@@ -8,6 +8,7 @@ import sys
 import argparse
 import logging
 import urllib2
+from logging.handlers import RotatingFileHandler
 
 try:
     import simplejson as json

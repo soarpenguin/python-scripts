@@ -12,6 +12,9 @@ from stat import S_ISDIR, S_ISREG, ST_MODE
 import terminal
 import pipes
 
+#import pdb
+#pdb.set_trace()
+
 join = os.path.join
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
 
