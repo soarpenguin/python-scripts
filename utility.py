@@ -372,6 +372,25 @@ def _replace_all(path, replacements):
         path = path.replace(*j)
     return path
 
+
+def hexbitmask(l, nr_entries):
+	hexbitmask = []
+	bit = 0
+	mask = 0
+	for entry in range(nr_entries):
+		if entry in l:
+			mask |= (1 << bit)
+		bit += 1
+		if bit == 32:
+			bit = 0
+			hexbitmask.insert(0, mask)
+			mask = 0
+
+	if bit < 32 and mask != 0:
+		hexbitmask.insert(0, mask)
+
+	return hexbitmask
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
