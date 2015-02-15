@@ -166,7 +166,15 @@ def format_help(help_info, choices=None):
 def parse_argument():
     """ parse the command line argument. """
 
-    parser = argparse.ArgumentParser()
+    epilog_example = """
+    rm_end_space provides cmd line tool for remove spaces/tab etc character in
+    the end of line. Useful for batch format source code and text file.
+
+    Please see the readme for complete examples.
+    """
+
+    parser = argparse.ArgumentParser(description='Cmd line tool for rm spaces in the end of line.',\
+            epilog = epilog_example, formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--version', action = 'version',
                 version = '%(prog)s 1.0'
