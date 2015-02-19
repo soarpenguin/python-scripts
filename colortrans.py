@@ -277,7 +277,7 @@ def rgb2short(r, g, b):
     """
     incs = (0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff)
     # Break 6-char RGB code into 3 integer vals.
-    parts = [ r, g, b] 
+    parts = [ r, g, b]
     res = []
     for part in parts:
         i = 0

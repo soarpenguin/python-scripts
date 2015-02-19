@@ -94,7 +94,8 @@ def deal_with_file(filename):
 
     if filename is None or not os.path.exists(filename):
         errorMessage = "file of %s is not exists." % filename
-        error_exit(errorMessage)
+        LOG.error(errorMessage)
+        sys.exit(RET_FAILED)
 
     # match system sed cmd parameter diff.
     if re.match("Darwin", os.uname()[0], re.I):
@@ -121,7 +122,8 @@ def deal_with_dir(dirpath):
 
     if dirpath is None or not os.path.exists(dirpath):
         errorMessage = "dir of %s is not exists." % dirpath
-        error_exit(errorMessage)
+        LOG.error(errorMessage)
+        sys.exit(RET_FAILED)
 
     dirpath = str(dirpath).strip()
     if str(dirpath).startswith('.') and not dirpath.startswith('./'):
