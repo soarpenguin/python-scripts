@@ -14,6 +14,7 @@ import time
 import subprocess
 import threading
 import struct
+import socket
 
 
 import os.path
@@ -374,6 +375,35 @@ def humanize_bytes(n, precision=2):
 
     # noinspection PyUnboundLocalVariable
     return '%.*f %s' % (precision, n / factor, suffix)
+
+
+# Python 2.x?
+is_py2 = (_ver[0] == 2)
+# Python 3.x?
+is_py3 = (_ver[0] == 3)
+
+def dict_to_sequence(d):
+    """Returns an internal sequence dictionary update."""
+    if hasattr(d, 'items'):
+        d = d.items()
+
+    return d
+
+def to_native_string(string, encoding='ascii'):
+    """
+        Given a string object, regardless of type, returns a representation of that
+        string in the native string type, encoding and decoding where necessary.
+        This assumes ASCII unless told otherwise.
+    """
+    out = None
+    if isinstance(string, builtin_str):
+        out = string
+    else:
+        if is_py2:
+            out = string.encode(encoding)
+        else:
+            out = string.decode(encoding)
+    return out
 
 
 if __name__ == '__main__':
