@@ -378,9 +378,9 @@ def humanize_bytes(n, precision=2):
 
 
 # Python 2.x?
-is_py2 = (_ver[0] == 2)
+is_py2 = (sys.version_info[0] == 2)
 # Python 3.x?
-is_py3 = (_ver[0] == 3)
+is_py3 = (sys.version_info[0] == 3)
 
 def dict_to_sequence(d):
     """Returns an internal sequence dictionary update."""
@@ -405,6 +405,27 @@ def to_native_string(string, encoding='ascii'):
             out = string.decode(encoding)
     return out
 
+def get_file_content(path, default=None, strip=True):
+    data = default
+    if os.path.exists(path) and os.access(path, os.R_OK):
+        try:
+            datafile = open(path)
+            data = datafile.read()
+            if strip:
+                data = data.strip()
+            if len(data) == 0:
+                data = default
+        finally:
+            datafile.close()
+    return data
+
+def get_file_lines(path):
+    '''file.readlines() that closes the file'''
+    datafile = open(path)
+    try:
+        return datafile.readlines()
+    finally:
+        datafile.close()
 
 if __name__ == '__main__':
     var_list = VarList()
@@ -438,3 +459,4 @@ if __name__ == '__main__':
         sys.stderr.write('not found\n')
 
     print _parse_int("02345")
+
