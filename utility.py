@@ -11,6 +11,7 @@ import re
 from stat import S_ISDIR, S_ISREG, ST_MODE
 import terminal
 import pipes
+import stat
 
 #import pdb
 #pdb.set_trace()
