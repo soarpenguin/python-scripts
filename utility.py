@@ -129,6 +129,32 @@ def check_access_rights(top):
             # unknown file type
             pass
 
+def is_executable_file(path):
+    """Checks that path is an executable regular file, or a symlink towards one.
+    This is roughly ``os.path isfile(path) and os.access(path, os.X_OK)``.
+    """
+    # follow symlinks,
+    fpath = os.path.realpath(path)
+
+    if not os.path.isfile(fpath):
+        # non-files (directories, fifo, etc.)
+        return False
+
+    mode = os.stat(fpath).st_mode
+
+    if (sys.platform.startswith('sunos')
+            and os.getuid() == 0):
+        # When root on Solaris, os.X_OK is True for *all* files, irregardless
+        # of their executability -- instead, any permission bit of any user,
+        # group, or other is fine enough.
+        #
+        # (This may be true for other "Unix98" OS's such as HP-UX and AIX)
+        return bool(mode & (stat.S_IXUSR |
+                            stat.S_IXGRP |
+                            stat.S_IXOTH))
+
+    return os.access(fpath, os.X_OK)
+
 def copyfileobj(src, dst, length=None):
     """Copy length bytes from fileobj src to fileobj dst.
        If length is None, copy the entire content.
