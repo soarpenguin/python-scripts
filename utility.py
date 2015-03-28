@@ -156,6 +156,27 @@ def is_executable_file(path):
 
     return os.access(fpath, os.X_OK)
 
+
+def which(filename):
+    '''This takes a given filename; tries to find it in the environment path;
+    then checks if it is executable. This returns the full path to the filename
+    if found and executable. Otherwise this returns None.'''
+
+    # Special case where filename contains an explicit path.
+    if os.path.dirname(filename) != '' and is_executable_file(filename):
+        return filename
+    if 'PATH' not in os.environ or os.environ['PATH'] == '':
+        p = os.defpath
+    else:
+        p = os.environ['PATH']
+    pathlist = p.split(os.pathsep)
+    for path in pathlist:
+        ff = os.path.join(path, filename)
+        if is_executable_file(ff):
+            return ff
+    return None
+
+
 def copyfileobj(src, dst, length=None):
     """Copy length bytes from fileobj src to fileobj dst.
        If length is None, copy the entire content.
