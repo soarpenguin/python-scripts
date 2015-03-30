@@ -183,26 +183,24 @@ def parse_argument():
             )
 
     parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes',
-                      type = int, default = 64 * 1024 * 1024,
-                      help = format_help('Maximum bytes per a logfile.'))
+                type = int, default = 64 * 1024 * 1024,
+                help = format_help('Maximum bytes per a logfile.'))
 
     parser.add_argument('--backup-count', action = 'store',
-                      dest = 'backup_count', type = int, default = 0,
-                      help = format_help('Maximum number of logfiles to backup.'))
+                dest = 'backup_count', type = int, default = 0,
+                help = format_help('Maximum number of logfiles to backup.'))
 
     parser.add_argument('--logfile', action = 'store', dest='logfile',
-                      type = str, default = DEFAULT_LOG,
-                      help = format_help('Filename where logs are written to.'))
+                type = str, default = DEFAULT_LOG,
+                help = format_help('Filename where logs are written to.'))
 
     parser.add_argument('-d', '--dir', action = 'store',
                 dest = 'dir', type = str,
-                help = format_help('Dir to recursive remove spaces at the end of the line.')
-            )
+                help = format_help('Dir to recursive remove spaces at the end of the line.'))
 
     parser.add_argument('-f', '--file', action = 'store',
                 dest = 'file', type = str,
-                help = format_help('File name for remove spaces at the end of the line.')
-            )
+                help = format_help('File name for remove spaces at the end of the line.'))
 
     options = parser.parse_args()
 
