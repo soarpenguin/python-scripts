@@ -427,6 +427,22 @@ def get_file_lines(path):
     finally:
         datafile.close()
 
+def Array(typecode, sequence, lock=True):
+    return array.array(typecode, sequence)
+
+class Value(object):
+    def __init__(self, typecode, value, lock=True):
+        self._typecode = typecode
+        self._value = value
+    def _get(self):
+        return self._value
+    def _set(self, value):
+        self._value = value
+    value = property(_get, _set)
+    def __repr__(self):
+        return '<%r(%r, %r)>'%(type(self).__name__,self._typecode,self._value)
+
+
 if __name__ == '__main__':
     var_list = VarList()
     var_list.append("name")
