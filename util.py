@@ -216,6 +216,15 @@ def findall(dir = os.curdir):
         all_files.extend(filter(os.path.isfile, files))
     return all_files
 
+import base64
+def b64_encode(s):
+    return base64.urlsafe_b64encode(s).strip(b'=')
+
+
+def b64_decode(s):
+    pad = b'=' * (-len(s) % 4)
+    return base64.urlsafe_b64decode(s + pad)
+
 ################################################################
 # test code
 
