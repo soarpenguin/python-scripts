@@ -443,6 +443,13 @@ class Value(object):
         return '<%r(%r, %r)>'%(type(self).__name__,self._typecode,self._value)
 
 
+def enable_sig_handler(signal_name, handler):
+    '''
+    Add signal handler for signal name if it exists on given platform
+    '''
+    if hasattr(signal, signal_name):
+        signal.signal(getattr(signal, signal_name), handler)
+
 if __name__ == '__main__':
     var_list = VarList()
     var_list.append("name")
