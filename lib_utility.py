@@ -72,6 +72,24 @@ def check_environ():
 
     _environ_checked = True
 
+def assert_raises(exception_cls, callable, *args, **kwargs):
+    try:
+        callable(*args, **kwargs)
+    except exception_cls as e:
+        return e
+    except Exception as e:
+        assert False, 'assert_raises %s but raised: %s' % (exception_cls, e)
+    assert False, 'assert_raises %s but nothing raise' % (exception_cls)
+
+def assert_fail(err_response, callable, *args, **kwargs):
+    try:
+        callable(*args, **kwargs)
+    except Exception as e:
+        assert re.search(err_response, str(e)), \
+               'assert "%s" but got "%s"' % (err_response, e)
+        return
+
+    assert False, 'assert_fail %s but nothing raise' % (err_response)
 
 if __name__ == "__main__":
     print newer("utility.py", "util.py")
