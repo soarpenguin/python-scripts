@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-  '''
+'''
     Calculate the difference between two dictionaries as:
         (1) items added
         (2) items removed
@@ -8,7 +8,7 @@
 
     Originally posted at http://stackoverflow.com/questions/1165352/fast-comparison-between-two-python-dictionary/1165552#1165552
     Available at repository: https://github.com/hughdbrown/dictdiffer
-  '''
+'''
 
 def diff(current_dict, past_dict):
     return DictDiffer(current_dict, past_dict)
