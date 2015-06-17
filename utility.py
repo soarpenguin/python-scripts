@@ -13,6 +13,11 @@ import terminal
 import pipes
 import stat
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 #import pdb
 #pdb.set_trace()
 
@@ -483,22 +488,35 @@ def _replace_all(path, replacements):
 
 
 def hexbitmask(l, nr_entries):
-	hexbitmask = []
-	bit = 0
-	mask = 0
-	for entry in range(nr_entries):
-		if entry in l:
-			mask |= (1 << bit)
-		bit += 1
-		if bit == 32:
-			bit = 0
-			hexbitmask.insert(0, mask)
-			mask = 0
+    hexbitmask = []
+    bit = 0
+    mask = 0
+    for entry in range(nr_entries):
+        if entry in l:
+            mask |= (1 << bit)
+        bit += 1
+        if bit == 32:
+            bit = 0
+            hexbitmask.insert(0, mask)
+            mask = 0
 
-	if bit < 32 and mask != 0:
-		hexbitmask.insert(0, mask)
+    if bit < 32 and mask != 0:
+        hexbitmask.insert(0, mask)
 
-	return hexbitmask
+    return hexbitmask
+
+def to_safe(word):
+    """ Converts 'bad' characters in a string to underscores. """
+
+    return re.sub("[^A-Za-z0-9\-]", "_", word)
+
+def json_format_dict(data, pretty=False):
+    """ Converts a dict to a JSON object and dumps it as a formatted string """
+
+    if pretty:
+        return json.dumps(data, sort_keys=True, indent=2)
+    else:
+        return json.dumps(data)
 
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
