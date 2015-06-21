@@ -4,6 +4,32 @@ __metaclass__ = type
 
 import os
 
+PASSLIB_AVAILABLE = False
+try:
+    import passlib.hash
+    PASSLIB_AVAILABLE = True
+except:
+    pass
+
+def do_encrypt(result, encrypt, salt_size=None, salt=None):
+    if PASSLIB_AVAILABLE:
+        try:
+            crypt = getattr(passlib.hash, encrypt)
+        except:
+            raise ValueError("passlib does not support '%s' algorithm" % encrypt)
+
+        if salt_size:
+            result = crypt.encrypt(result, salt_size=salt_size)
+        elif salt:
+            result = crypt.encrypt(result, salt=salt)
+        else:
+            result = crypt.encrypt(result)
+    else:
+        raise ValueError("passlib must be installed to encrypt vars_prompt values")
+
+    return result
+
+
 # Note, sha1 is the only hash algorithm compatible with python2.4 and with
 # FIPS-140 mode (as of 11-2014)
 try:
@@ -20,6 +46,7 @@ except ImportError:
     except ImportError:
         # Assume we're running in FIPS mode here
         _md5 = None
+
 
 def secure_hash_s(data, hash_func=sha1):
     ''' Return a secure hash hex digest of data. '''
