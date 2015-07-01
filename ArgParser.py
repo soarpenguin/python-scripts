@@ -33,6 +33,9 @@ def parse_argument():
     #group.add_argument("-v", "--verbose", action="store_true")
     #group.add_argument("-q", "--quiet", action="store_true")
 
+    parser.add_argument('-v','--verbose', dest='verbosity', default=0, action="count",
+                        help="verbose mode (-vvv for more, -vvvv to enable connection debugging)")
+
     parser.add_argument('-s', action='store',
                         dest='simple_value',
                         help='Store a simple value'
@@ -83,5 +86,6 @@ if __name__ == '__main__':
     print results.boolean_switch
     print results.boolean_switch
     print results.collection
+    print results.verbosity
     #print results.collection
 
