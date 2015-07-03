@@ -138,6 +138,11 @@ def parse_argument():
                 dest = 'concurrent', type = int, default = 1,
                 help = format_help('Process nummber for run the command at same time.'))
 
+    parser.add_argument('-r', '--retry-flie', action = 'store', required = False,
+                dest = 'retry_file', type = str, #nargs = 1,
+                help = format_help('Retry file for ansible redo failed hosts.')
+            )
+
     parser.add_argument('-i', '--inventory-file', action = 'store', required=True,
                 dest = 'inventory_file', type = str, #nargs = 1,
                 help = format_help('Specify inventory host file.')
@@ -234,7 +239,7 @@ def do_update_action(action, inventory_file, operation_file):
     #print(out, err)
 
 
-def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1):
+def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1, retryfile=""):
     """Do module deploy. """
 
     if action != "deploy" or not inventory_file or not operation_file:
@@ -282,11 +287,19 @@ def do_deploy_action(action, inventory_file, operation_file, singlemode=False, c
 
             cmd = cmd + " -l " + hostname
             break
+
+    elif retryfile:
+        if not os.path.exists(retryfile) or not (os.path.isfile(retryfile)):
+	    print("ERROR: please check the exists of retry file: %s" % retryfile)
+	    sys.exit(RET_FAILED)
+        else:
+	    cmd = cmd + "--limit @" + str(retryfile).strip()
                  
     print(cmd)
     rc, out, err = run_cmd(cmd, live=True)
     if rc != 0:
         print("%s failed!" % cmd)
+        sys.exit(RET_FAILED)
     #print(out, err)
     
     
@@ -332,7 +345,8 @@ def main():
             print('-------------Now doing in action: {0}, Single mode: {1}'.format(action, options.single_mode))
             single_mode = options.single_mode
             concurrent = options.concurrent
-            do_deploy_action(action, inventory_file, operation_file, single_mode, concurrent)
+            retryfile = options.retry_file
+            do_deploy_action(action, inventory_file, operation_file, single_mode, concurrent, retryfile)
             break
         if case():
             print('-------------Unsupport action, check your action: {0}'.format(action))
