@@ -239,25 +239,28 @@ def do_update_action(action, inventory_file, operation_file):
     #print(out, err)
 
 
-def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1, retryfile=""):
-    """Do module deploy. """
 
-    if action != "deploy" or not inventory_file or not operation_file:
-        print("Error parameters in %s" % sys._getframe().f_code.co_name)
-        sys.exit(RET_FAILED)
+def get_single_hostname(inventory_file, section):
+    """ Get single host from inventory file."""
 
-    # ansible-playbook -i hosts operation.yml --extra-vars "hosts=deploy" -t deploy -f 1 -vvvv
-    cmd = "%s -i %s %s --extra-vars \"hosts=%s\" -t %s -f %s -v" % (ANSIBLE_CMD, inventory_file, operation_file, action, action, concurrent)
+    hostname = ""
 
-    if singlemode:
-        config = load_config_file(inventory_file)
+    if not os.path.exists(inventory_file):
+        return hostname
 
-        items = config.items(str(action))
-        #if len(items) >= 1:
+    config = load_config_file(inventory_file)
+
+    items = config.items(str(section))
+    if len(items) >= 1:
         for item in items:     
             item = str(item[0])
             if item.startswith("(") and item.endswith(")"):
                 item = item.replace("(", "").replace(")", "")
+            elif item.startswith("[") and item.endswith("]"):
+                item = item.replace("[", "").replace("]", "")
+
+            tokens = shlex.split(item)
+            if len(tokens) == 0:
             elif item.startswith("[") and item.endswith("]"):
                 item = item.replace("[", "").replace("]", "")
 
@@ -285,23 +288,41 @@ def do_deploy_action(action, inventory_file, operation_file, singlemode=False, c
             if not hostname:
                 continue
 
-            cmd = cmd + " -l " + hostname
             break
+
+    return hostname.strip()
+
+
+def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1, retryfile=""):
+    """Do module deploy. """
+
+    if action != "deploy" or not inventory_file or not operation_file:
+        print("Error parameters in %s" % sys._getframe().f_code.co_name)
+        sys.exit(RET_FAILED)
+
+    # ansible-playbook -i hosts operation.yml --extra-vars "hosts=deploy" -t deploy -f 1 -vvvv
+    cmd = "%s -i %s %s --extra-vars \"hosts=%s\" -t %s -f %s -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, action, concurrent)
+
+    if singlemode:
+        hostname = get_single_hostname(inventory_file, action)
+        if hostname:
+            cmd = cmd + " -l " + str(hostname).strip()
+        else:
+            print("ERROR: get single hostname from %s failed in single mode." % inventory_file)
+            sys.exit(RET_FAILED)
 
     elif retryfile:
         if not os.path.exists(retryfile) or not (os.path.isfile(retryfile)):
-	    print("ERROR: please check the exists of retry file: %s" % retryfile)
-	    sys.exit(RET_FAILED)
+            print("ERROR: please check the exists of retry file: %s" % retryfile)
+            sys.exit(RET_FAILED)
         else:
-	    cmd = cmd + "--limit @" + str(retryfile).strip()
-                 
+            cmd = cmd + "--limit @" + str(retryfile).strip()
+
     print(cmd)
     rc, out, err = run_cmd(cmd, live=True)
     if rc != 0:
         print("%s failed!" % cmd)
-        sys.exit(RET_FAILED)
     #print(out, err)
-    
     
 ###############################################
 ## Main route for deploy script.
