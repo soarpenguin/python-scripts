@@ -123,7 +123,7 @@ def parse_argument():
                 help = format_help('Maximum bytes per a logfile.'))
 
     parser.add_argument('--backup-count', action = 'store',
-                dest = 'backup_count', type = int, default = 1,
+                dest = 'backup_count', type = int, default = 0,
                 help = format_help('Maximum number of logfiles to backup.'))
 
     parser.add_argument('--logfile', action = 'store', dest='logfile',
@@ -338,7 +338,7 @@ def main():
         confdata = load_yaml_configure(operation_file)
 
         if confdata is None:
-            print("ERROR: Load yaml configure file failed.")
+            LOG.info("ERROR: Load yaml configure file failed.")
             sys.exit(RET_FAILED)
 
     inventory_file = os.path.realpath(options.inventory_file)
@@ -346,7 +346,7 @@ def main():
         inv_file = load_config_file(inventory_file)
 
         if inv_file is None:
-            print("ERROR: Load ini configure file failed.")
+            LOG.info("ERROR: Load ini configure file failed.")
             sys.exit(RET_FAILED)
 
 
@@ -354,23 +354,23 @@ def main():
     for case in switch(action):
         LOG.info('[{0}] action on [{1}]'.format(action, operation_file))
         if case('check'):
-            print('-------------Now doing in action: {0}'.format(action))
+            LOG.info('-------------Now doing in action: {0}'.format(action))
             print yaml.dump(confdata, indent=4, default_flow_style=False)
             inv_file.write(sys.stdout)
             break
         if case('update'):
-            print('-------------Now doing in action: {0}'.format(action))
+            LOG.info('-------------Now doing in action: {0}'.format(action))
             do_update_action(action, inventory_file, operation_file)
             break
         if case('deploy'):
-            print('-------------Now doing in action: {0}, Single mode: {1}'.format(action, options.single_mode))
+            LOG.info('-------------Now doing in action: {0}, Single mode: {1}'.format(action, options.single_mode))
             single_mode = options.single_mode
             concurrent = options.concurrent
             retryfile = options.retry_file
             do_deploy_action(action, inventory_file, operation_file, single_mode, concurrent, retryfile)
             break
         if case():
-            print('-------------Unsupport action, check your action: {0}'.format(action))
+            LOG.info('-------------Unsupport action, check your action: {0}'.format(action))
             # No need to break here, it'll stop anyway
 
 
