@@ -15,6 +15,7 @@ import subprocess
 import threading
 import struct
 import socket
+import textwrap
 
 
 import os.path
@@ -259,6 +260,16 @@ def error_exit(msg, status=1):
     sys.stderr.write('Error: %s\n' % msg)
     sys.exit(status)
 
+def error_textwrap(self, msg, status, wrap_text=True):
+    if wrap_text:
+        new_msg = "\n[ERROR]: %s" % msg
+        wrapped = textwrap.wrap(new_msg, 79)
+        new_msg = "\n".join(wrapped) + "\n"
+    else:
+        new_msg = msg
+
+    sys.stderr.write(new_msg)
+    sys.exit(status)
 
 def shutdown():
     print "exit"
