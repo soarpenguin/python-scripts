@@ -14,6 +14,8 @@ import pipes
 import stat
 import shlex
 import select
+import tempfile
+import fcntl
 
 try:
     import json
@@ -575,6 +577,19 @@ def jsonify(result, format=False):
         return json.dumps(result2, sort_keys=True, indent=indent, ensure_ascii=False)
     except UnicodeDecodeError:
         return json.dumps(result2, sort_keys=True, indent=indent)
+
+def log_lockfile(prog):
+    # create the path for the lockfile and open it
+    tempdir = tempfile.gettempdir()
+    uid = os.getuid()
+    path = os.path.join(tempdir, "%s.lock.%s" % (prig, uid))
+    lockfile = open(path, 'w')
+    # use fcntl to set FD_CLOEXEC on the file descriptor,
+    # so that we don't leak the file descriptor later
+    lockfile_fd = lockfile.fileno()
+    old_flags = fcntl.fcntl(lockfile_fd, fcntl.F_GETFD)
+    fcntl.fcntl(lockfile_fd, fcntl.F_SETFD, old_flags | fcntl.FD_CLOEXEC)
+    return lockfile
 
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
