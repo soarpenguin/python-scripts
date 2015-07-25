@@ -591,6 +591,17 @@ def log_lockfile(prog):
     fcntl.fcntl(lockfile_fd, fcntl.F_SETFD, old_flags | fcntl.FD_CLOEXEC)
     return lockfile
 
+def last_non_blank_line(buf):
+
+    all_lines = buf.splitlines()
+    all_lines.reverse()
+    for line in all_lines:
+        if (len(line) > 0):
+            return line
+    # shouldn't occur unless there's no output
+    return ""
+
+
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
     #print configvalue
