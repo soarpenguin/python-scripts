@@ -111,6 +111,18 @@ def merge_hash(a, b):
 
     return result
 
+import fcntl as _fcntl
+
+def _set_flags(fd, flags):
+    try:
+        flag = _fcntl.fcntl(fd, _fcntl.F_GETFD, 0)
+    except IOError:
+        pass
+    else:
+        # flags read successfully, modify
+        flag |= flags
+        _fcntl.fcntl(fd, _fcntl.F_SETFD, flags)
+
 if __name__ == "__main__":
     print newer("utility.py", "util.py")
 
