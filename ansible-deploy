@@ -123,7 +123,7 @@ def parse_argument():
                 help = format_help('Maximum bytes per a logfile.'))
 
     parser.add_argument('--backup-count', action = 'store',
-                dest = 'backup_count', type = int, default = 0,
+                dest = 'backup_count', type = int, default = 1,
                 help = format_help('Maximum number of logfiles to backup.'))
 
     parser.add_argument('--logfile', action = 'store', dest='logfile',
@@ -137,6 +137,21 @@ def parse_argument():
     parser.add_argument('-c', '--concurrent', action = 'store',
                 dest = 'concurrent', type = int, default = 1,
                 help = format_help('Process nummber for run the command at same time.'))
+
+    parser.add_argument('-V', action = 'store', required = False,
+                dest = 'program_version', type = str, default = '', #nargs = 1,
+                help = format_help('Module program version for module deploy.')
+            )
+
+    parser.add_argument('--extra-vars', action = 'store', required = False,
+                dest = 'extra_vars', type = str, default = '', #nargs = 1,
+                help = format_help('Extra vars for ansible-playbook, Not action(hosts) and version.')
+            )
+
+    parser.add_argument('-S', '--section', action = 'store', required = False,
+                dest = 'section', type = str, default = '',#nargs = 1,
+                help = format_help('Inventory section for distinguish hosts or tags.')
+            )
 
     parser.add_argument('-r', '--retry-flie', action = 'store', required = False,
                 dest = 'retry_file', type = str, #nargs = 1,
@@ -211,6 +226,8 @@ def load_config_file(filename):
     ''' Load Config File. '''
 
     p = ConfigParser()
+    p.optionxform = str
+    filename = str(filename).strip()
 
     if filename is not None and os.path.exists(filename):
         try:
@@ -223,21 +240,30 @@ def load_config_file(filename):
     return None
 
 
-def do_update_action(action, inventory_file, operation_file):
+def do_update_action(action, inventory_file, operation_file, version=''):
     """Update source code. """
 
     if action != "update" or not inventory_file or not operation_file:
         print("Error parameters in %s" % sys._getframe().f_code.co_name)
         sys.exit(RET_FAILED)
+
+    if version:
+        version = str(version).strip()
+        extra_vars = " version=%s " % version
+    else:
+        extra_vars = ""
+
     # ansible-playbook -i hosts operation.yml --extra-vars "hosts=update" -t update -f 1 -vvvv
-    cmd = "%s -i %s %s --extra-vars \"hosts=%s\" -t %s -f 1 -v" % (ANSIBLE_CMD, inventory_file, operation_file, action, action)
+    if extra_vars:
+        cmd = "%s -i %s %s --extra-vars \"hosts=%s %s\" -t %s -f 1 -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, extra_vars, action)
+    else:
+        cmd = "%s -i %s %s --extra-vars \"hosts=%s \" -t %s -f 1 -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, action)
 
     print(cmd)
     rc, out, err = run_cmd(cmd, live=True)
     if rc != 0:
         print("%s failed!" % cmd)
     #print(out, err)
-
 
 
 def get_single_hostname(inventory_file, section):
@@ -256,11 +282,6 @@ def get_single_hostname(inventory_file, section):
             item = str(item[0])
             if item.startswith("(") and item.endswith(")"):
                 item = item.replace("(", "").replace(")", "")
-            elif item.startswith("[") and item.endswith("]"):
-                item = item.replace("[", "").replace("]", "")
-
-            tokens = shlex.split(item)
-            if len(tokens) == 0:
             elif item.startswith("[") and item.endswith("]"):
                 item = item.replace("[", "").replace("]", "")
 
@@ -293,15 +314,23 @@ def get_single_hostname(inventory_file, section):
     return hostname.strip()
 
 
-def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1, retryfile=""):
+def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1, retryfile="", ext_vars="", section=""):
     """Do module deploy. """
 
     if action != "deploy" or not inventory_file or not operation_file:
         print("Error parameters in %s" % sys._getframe().f_code.co_name)
         sys.exit(RET_FAILED)
 
+    section = str(section).strip()
+    if section:
+        action = section
+
     # ansible-playbook -i hosts operation.yml --extra-vars "hosts=deploy" -t deploy -f 1 -vvvv
-    cmd = "%s -i %s %s --extra-vars \"hosts=%s\" -t %s -f %s -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, action, concurrent)
+    if ext_vars:
+        cmd = "%s -i %s %s --extra-vars \"hosts=%s %s\" -t %s -f %s -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, ext_vars, action, concurrent)
+    else:
+        cmd = "%s -i %s %s --extra-vars \"hosts=%s \" -t %s -f %s -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, action, concurrent)
+
 
     if singlemode:
         hostname = get_single_hostname(inventory_file, action)
@@ -324,6 +353,7 @@ def do_deploy_action(action, inventory_file, operation_file, singlemode=False, c
         print("%s failed!" % cmd)
     #print(out, err)
     
+
 ###############################################
 ## Main route for deploy script.
 ###############################################
@@ -360,14 +390,16 @@ def main():
             break
         if case('update'):
             LOG.info('-------------Now doing in action: {0}'.format(action))
-            do_update_action(action, inventory_file, operation_file)
+            do_update_action(action, inventory_file, operation_file, options.program_version)
             break
         if case('deploy'):
             LOG.info('-------------Now doing in action: {0}, Single mode: {1}'.format(action, options.single_mode))
             single_mode = options.single_mode
             concurrent = options.concurrent
             retryfile = options.retry_file
-            do_deploy_action(action, inventory_file, operation_file, single_mode, concurrent, retryfile)
+            ext_vars = options.extra_vars
+            section = options.section
+            do_deploy_action(action, inventory_file, operation_file, single_mode, concurrent, retryfile, ext_vars, section)
             break
         if case():
             LOG.info('-------------Unsupport action, check your action: {0}'.format(action))
