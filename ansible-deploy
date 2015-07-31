@@ -27,7 +27,7 @@ RET_FAILED       = 1
 RET_INVALID_ARGS = 2
 
 ANSIBLE_CMD = "/usr/bin/ansible-playbook"
-if ANSIBLE_CMD is None or not os.path.exists(ANSIBLE_CMD):
+if not ANSIBLE_CMD or not os.path.exists(ANSIBLE_CMD):
     ANSIBLE_CMD = "ansible-playbook"
 
 INDENT = ' ' * 2
@@ -275,6 +275,9 @@ def get_single_hostname(inventory_file, section):
         return hostname
 
     config = load_config_file(inventory_file)
+
+    if config is None:
+        return hostname
 
     items = config.items(str(section))
     if len(items) >= 1:
