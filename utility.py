@@ -601,6 +601,16 @@ def last_non_blank_line(buf):
     # shouldn't occur unless there's no output
     return ""
 
+def rst_fmt(text, fmt):
+    ''' helper for Jinja2 to do format strings '''
+
+    return fmt % (text)
+
+def rst_xline(width, char="="):
+    ''' return a restructured text line of a given length '''
+
+    return char * width
+
 
 if __name__ == '__main__':
     #configvalue = getConfig("./config.ini", "mysql", "port")
