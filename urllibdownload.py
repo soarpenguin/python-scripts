@@ -5,6 +5,7 @@ import urllib
 import urllib2
 import sys
 import optparse
+import operator
 import re
 import shutil
 import time, datetime
@@ -148,18 +149,27 @@ def download_file_bar(url, destfile):
     print("")
     print("%s finished :)" % url)
 
+class SortedOptParser(optparse.OptionParser):
+    '''Optparser which sorts the options by opt before outputting --help'''
+
+    #FIXME: epilog parsing: OptionParser.format_epilog = lambda self, formatter: self.epilog
+
+    def format_help(self, formatter=None, epilog=None):
+        self.option_list.sort(key=operator.methodcaller('get_opt_string'))
+        return optparse.OptionParser.format_help(self, formatter=None)
+
 def parse_cmdline(argv):
     """Parses the command-line."""
 
     # get arguments
-    parser = optparse.OptionParser(
+    parser = SortedOptParser(
             usage="Usage: %s -f filename -u url" % sys.argv[0],
             description='download url file use urllib.')
-    parser.add_option('-f', '--file', dest='file', metavar='str',
+    parser.add_option('-o', '--output', dest='output', metavar='str',
                         help='file name for save.')
     parser.add_option('-u', '--url', dest='url', metavar='URL',
                         help='url file for download.')
-    parser.add_option('-l', '--filelist', dest='filelist', metavar='str',
+    parser.add_option('-f', '--filelist', dest='filelist', metavar='str',
                         help='url file list for batch download.')
     parser.add_option('-d', '--dest', dest='dest', metavar='str',
                         default="./", help='dest dir for save file.')
@@ -232,11 +242,11 @@ def main(argv):
         finally:
             f_lists.close()
     else:
-        if options.file is None:
+        if options.output is None:
             parsed = urlparse(options.url)
-            options.file = re.sub('[\\\/]', '', parsed.path)
+            options.output = re.sub('[\\\/]', '', parsed.path)
 
-        destfile = os.path.join(options.dest, options.file)
+        destfile = os.path.join(options.dest, options.output)
 
         if pygressbar is None or options.progress:
             download_file(options.url, destfile)
