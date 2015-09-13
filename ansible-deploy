@@ -27,7 +27,7 @@ RET_FAILED       = 1
 RET_INVALID_ARGS = 2
 
 ANSIBLE_CMD = "/usr/bin/ansible-playbook"
-if not ANSIBLE_CMD or not os.path.exists(ANSIBLE_CMD):
+if ANSIBLE_CMD is None or not os.path.exists(ANSIBLE_CMD):
     ANSIBLE_CMD = "ansible-playbook"
 
 INDENT = ' ' * 2
@@ -50,6 +50,7 @@ def format_help(help_info, choices=None):
 
 
 def run_cmd(cmd, live=False, readsize=10):
+    """ python function for run bash command. """
 
     #readsize = 10
     cmdargs = shlex.split(cmd)
@@ -87,8 +88,8 @@ def run_cmd(cmd, live=False, readsize=10):
 
 
 def shell_expand_path(path):
-    ''' shell_expand_path is needed as os.path.expanduser does not work
-        when path is None '''
+    """ shell_expand_path is needed as os.path.expanduser does not work
+        when path is None """
     if path:
         path = os.path.expanduser(os.path.expandvars(path))
     return path
@@ -115,8 +116,7 @@ def parse_argument():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action = 'version',
-                version = '%(prog)s 1.0'
-            )
+                version = '%(prog)s 1.0')
 
     parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes',
                 type = int, default = 64 * 1024 * 1024,
@@ -131,8 +131,7 @@ def parse_argument():
                 help = format_help('Filename where logs are written to.'))
 
     parser.add_argument('-s', '--single', action = 'store_true', dest = 'single_mode', default = False,
-                help = format_help('Single mode in deploy one host for observation.')
-            )
+                help = format_help('Single mode in deploy one host for observation.'))
 
     parser.add_argument('-c', '--concurrent', action = 'store',
                 dest = 'concurrent', type = int, default = 1,
@@ -140,38 +139,31 @@ def parse_argument():
 
     parser.add_argument('-V', action = 'store', required = False,
                 dest = 'program_version', type = str, default = '', #nargs = 1,
-                help = format_help('Module program version for module deploy.')
-            )
+                help = format_help('Module program version for module deploy.'))
 
     parser.add_argument('--extra-vars', action = 'store', required = False,
                 dest = 'extra_vars', type = str, default = '', #nargs = 1,
-                help = format_help('Extra vars for ansible-playbook, Not action(hosts) and version.')
-            )
+                help = format_help('Extra vars for ansible-playbook, Not action(hosts) and version.'))
 
     parser.add_argument('-S', '--section', action = 'store', required = False,
                 dest = 'section', type = str, default = '',#nargs = 1,
-                help = format_help('Inventory section for distinguish hosts or tags.')
-            )
+                help = format_help('Inventory section for distinguish hosts or tags.'))
 
     parser.add_argument('-r', '--retry-flie', action = 'store', required = False,
                 dest = 'retry_file', type = str, #nargs = 1,
-                help = format_help('Retry file for ansible redo failed hosts.')
-            )
+                help = format_help('Retry file for ansible redo failed hosts.'))
 
-    parser.add_argument('-i', '--inventory-file', action = 'store', required=True,
+    parser.add_argument('-i', '--inventory-file', action = 'store', required = True,
                 dest = 'inventory_file', type = str, #nargs = 1,
-                help = format_help('Specify inventory host file.')
-            )
+                help = format_help('Specify inventory host file.'))
 
-    parser.add_argument('-f', '--operation-file', action = 'store', required=True,
+    parser.add_argument('-f', '--operation-file', action = 'store', required = True,
                 dest = 'operation_file', type = str, #nargs = 1,
-                help = format_help('File name for module configure(yml format).')
-            )
+                help = format_help('File name for module configure(yml format).'))
 
-    parser.add_argument('--action', action = 'store', required=True,
+    parser.add_argument('--action', action = 'store', required = True,
                 dest = 'action', type = str,
-                help = format_help('Action name for script do. (check,update,deploy,rollback)')
-            )
+                help = format_help('Action name for script do. (check,update,deploy,rollback)'))
 
     options = parser.parse_args()
 
@@ -207,6 +199,7 @@ class switch(object):
 
 def load_yaml_configure(filename):
     """Load yaml format configure file for deploy."""
+
     confdata = None
 
     try:
@@ -223,7 +216,7 @@ def load_yaml_configure(filename):
 
 
 def load_config_file(filename):
-    ''' Load Config File. '''
+    """ Load Config File. """
 
     p = ConfigParser()
     p.optionxform = str
@@ -240,7 +233,7 @@ def load_config_file(filename):
     return None
 
 
-def do_update_action(action, inventory_file, operation_file, version=''):
+def do_update_action(action, inventory_file, operation_file, version='', concurrent=1):
     """Update source code. """
 
     if action != "update" or not inventory_file or not operation_file:
@@ -254,15 +247,19 @@ def do_update_action(action, inventory_file, operation_file, version=''):
         extra_vars = ""
 
     # ansible-playbook -i hosts operation.yml --extra-vars "hosts=update" -t update -f 1 -vvvv
+    # set serial: '{{ forks }}' in operation.yml
+    # set cluster hosts: '{{ hosts }}' in operation.yml
+    # and some extra_vars from command line parameters.
     if extra_vars:
-        cmd = "%s -i %s %s --extra-vars \"hosts=%s %s\" -t %s -f 1 -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, extra_vars, action)
+        cmd = "%s -i %s %s --extra-vars \"forks=%s hosts=%s %s\" -t %s -f %s " % (ANSIBLE_CMD, inventory_file, operation_file, concurrent, action, extra_vars, action, concurrent)
     else:
-        cmd = "%s -i %s %s --extra-vars \"hosts=%s \" -t %s -f 1 -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, action)
+        cmd = "%s -i %s %s --extra-vars \"forks=%s hosts=%s \" -t %s -f %s  " % (ANSIBLE_CMD, inventory_file, operation_file, concurrent, action, action, concurrent)
 
     print(cmd)
     rc, out, err = run_cmd(cmd, live=True)
     if rc != 0:
         print("%s failed!" % cmd)
+        sys.exit(rc)
     #print(out, err)
 
 
@@ -281,7 +278,7 @@ def get_single_hostname(inventory_file, section):
 
     items = config.items(str(section))
     if len(items) >= 1:
-        for item in items:     
+        for item in items:
             item = str(item[0])
             if item.startswith("(") and item.endswith(")"):
                 item = item.replace("(", "").replace(")", "")
@@ -318,21 +315,35 @@ def get_single_hostname(inventory_file, section):
 
 
 def do_deploy_action(action, inventory_file, operation_file, singlemode=False, concurrent=1, retryfile="", ext_vars="", section=""):
-    """Do module deploy. """
+    """
+     Do module deploy.
+        action:         deploy action and default tags for cluster hosts.
+        inventory_file: hosts file for deploy.
+        operation_file: step commands for this deploy.
+        singlemode:     mode parameter for deploy one host or not.
+        concurrent:     ansible-playbook forks paramaters, and also for serial extra_vars in operation.yml.
+        retryfile:      inventory file for fail retry.
+        ext_vars:       extra_vars from command line parameters.
+        section:        tag and section name for not defaulti. (default is the same of action.)
+    """
 
     if action != "deploy" or not inventory_file or not operation_file:
         print("Error parameters in %s" % sys._getframe().f_code.co_name)
         sys.exit(RET_FAILED)
 
+    # if section not null, assign section to action for replace default (section/tag) name in (inventory/operation) file.
     section = str(section).strip()
     if section:
         action = section
 
     # ansible-playbook -i hosts operation.yml --extra-vars "hosts=deploy" -t deploy -f 1 -vvvv
+    # set serial: '{{ forks }}' in operation.yml
+    # set cluster hosts: '{{ hosts }}' in operation.yml
+    # and some extra_vars from command line parameters.
     if ext_vars:
-        cmd = "%s -i %s %s --extra-vars \"hosts=%s %s\" -t %s -f %s -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, ext_vars, action, concurrent)
+        cmd = "%s -i %s %s --extra-vars \"forks=%s hosts=%s %s\" -t %s -f %s " % (ANSIBLE_CMD, inventory_file, operation_file, concurrent, action, ext_vars, action, concurrent)
     else:
-        cmd = "%s -i %s %s --extra-vars \"hosts=%s \" -t %s -f %s -v " % (ANSIBLE_CMD, inventory_file, operation_file, action, action, concurrent)
+        cmd = "%s -i %s %s --extra-vars \"forks=%s hosts=%s \" -t %s -f %s " % (ANSIBLE_CMD, inventory_file, operation_file, concurrent, action, action, concurrent)
 
 
     if singlemode:
@@ -342,20 +353,20 @@ def do_deploy_action(action, inventory_file, operation_file, singlemode=False, c
         else:
             print("ERROR: get single hostname from %s failed in single mode." % inventory_file)
             sys.exit(RET_FAILED)
-
     elif retryfile:
         if not os.path.exists(retryfile) or not (os.path.isfile(retryfile)):
             print("ERROR: please check the exists of retry file: %s" % retryfile)
             sys.exit(RET_FAILED)
         else:
-            cmd = cmd + "--limit @" + str(retryfile).strip()
+            cmd = cmd + " --limit @" + str(retryfile).strip()
 
     print(cmd)
     rc, out, err = run_cmd(cmd, live=True)
     if rc != 0:
         print("%s failed!" % cmd)
+        sys.exit(rc)
     #print(out, err)
-    
+
 
 ###############################################
 ## Main route for deploy script.
@@ -371,7 +382,7 @@ def main():
         confdata = load_yaml_configure(operation_file)
 
         if confdata is None:
-            LOG.info("ERROR: Load yaml configure file failed.")
+            print("ERROR: Load operation configure file %s failed." % operation_file)
             sys.exit(RET_FAILED)
 
     inventory_file = os.path.realpath(options.inventory_file)
@@ -379,7 +390,7 @@ def main():
         inv_file = load_config_file(inventory_file)
 
         if inv_file is None:
-            LOG.info("ERROR: Load ini configure file failed.")
+            print("ERROR: Load inventory configure file %s failed." % inventory_file)
             sys.exit(RET_FAILED)
 
 
@@ -387,16 +398,17 @@ def main():
     for case in switch(action):
         LOG.info('[{0}] action on [{1}]'.format(action, operation_file))
         if case('check'):
-            LOG.info('-------------Now doing in action: {0}'.format(action))
+            print('-------------Now doing in action: {0}'.format(action))
             print yaml.dump(confdata, indent=4, default_flow_style=False)
             inv_file.write(sys.stdout)
             break
         if case('update'):
-            LOG.info('-------------Now doing in action: {0}'.format(action))
-            do_update_action(action, inventory_file, operation_file, options.program_version)
+            print('-------------Now doing in action: {0}'.format(action))
+            do_update_action(action, inventory_file, operation_file, options.program_version, options.concurrent)
             break
         if case('deploy'):
-            LOG.info('-------------Now doing in action: {0}, Single mode: {1}'.format(action, options.single_mode))
+            inv_file.write(sys.stdout)
+            print('-------------Now doing in action: {0}, Single mode: {1}'.format(action, options.single_mode))
             single_mode = options.single_mode
             concurrent = options.concurrent
             retryfile = options.retry_file
@@ -405,7 +417,7 @@ def main():
             do_deploy_action(action, inventory_file, operation_file, single_mode, concurrent, retryfile, ext_vars, section)
             break
         if case():
-            LOG.info('-------------Unsupport action, check your action: {0}'.format(action))
+            print('-------------Unsupport action, check your action: {0}'.format(action))
             # No need to break here, it'll stop anyway
 
 
