@@ -8,11 +8,12 @@ from __future__ import print_function
 import sys
 import os
 import os.path
-import stat
+
 
 def usage():
     sys.stderr.write("Usage: python which.py name\n")
     sys.stderr.write("or: which.py name\n")
+
 
 def which(name):
     found = 0
@@ -30,6 +31,7 @@ def which(name):
     # Programming shortcut to toggle the value of found: 1 => 0, 0 => 1.
     sys.exit(1 - found)
 
+
 def main():
     if len(sys.argv) != 2:
         usage()
@@ -38,4 +40,3 @@ def main():
 
 if "__main__" == __name__:
         main()
-
