@@ -89,7 +89,7 @@ def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
     LOG.addHandler(ch)
 
 
-def deal_with_file(filename):
+def deal_with_file(filename, exts=''):
     """ deal with the file. """
 
     if filename is None or not os.path.exists(filename):
@@ -103,21 +103,34 @@ def deal_with_file(filename):
     else:
         cmd = 'sed -i \'s/[ \t]*$//g\''
 
-    # Skip files that end with certain extensions or characters
-    if any(str(filename).endswith(ext) for ext in EXCLUDE_EXT):
-        LOG.info("skip the file of %s" % filename)
-    elif str(filename).startswith('.') and not str(filename).startswith('./'):
-        LOG.info("skip the file of %s" % filename)
+    exts = str(exts).strip()
+    extsarray = exts.split(',')
+
+    if extsarray:
+        if any(str(filename).endswith(ext) for ext in extsarray):
+            cmd = cmd + " " + filename
+            print(cmd)
+            ret, output, errout = exec_cmd_with_stderr(cmd)
+            if ret != 0:
+                LOG.error("Run cmd %s failed." % errout)
+            else:
+                LOG.info("Run cmd successed %s." % cmd)
     else:
-        cmd = cmd + " " + filename
-        ret, output, errout = exec_cmd_with_stderr(cmd)
-        if ret != 0:
-            LOG.error("Run cmd %s failed." % errout)
+        # Skip files that end with certain extensions or characters
+        if any(str(filename).endswith(ext) for ext in EXCLUDE_EXT):
+            LOG.info("skip the file of %s" % filename)
+        elif str(filename).startswith('.') and not str(filename).startswith('./'):
+            LOG.info("skip the file of %s" % filename)
         else:
-            LOG.info("Run cmd successed %s." % cmd)
+            cmd = cmd + " " + filename
+            ret, output, errout = exec_cmd_with_stderr(cmd)
+            if ret != 0:
+                LOG.error("Run cmd %s failed." % errout)
+            else:
+                LOG.info("Run cmd successed %s." % cmd)
 
 
-def deal_with_dir(dirpath):
+def deal_with_dir(dirpath, exts=''):
     """ recurse deal with the dir, skip the dir start with '.' """
 
     if dirpath is None or not os.path.exists(dirpath):
@@ -135,11 +148,11 @@ def deal_with_dir(dirpath):
 
                 if os.path.isdir(f) and os.access(f, os.W_OK) and not os.path.islink(f):
                     # directory, recurse into it
-                    deal_with_dir(f)
+                    deal_with_dir(f, exts)
 
                 elif os.path.isfile(f) and os.access(f, os.W_OK):
                     # file, deal with the file
-                    deal_with_file(f)
+                    deal_with_file(f, exts)
                 else:
                     LOG.error("deal with the file %s failed" % f)
             else:
@@ -194,6 +207,10 @@ def parse_argument():
                 type = str, default = DEFAULT_LOG,
                 help = format_help('Filename where logs are written to.'))
 
+    parser.add_argument('-e', '--exts', action = 'store',
+                dest = 'exts', type = str, default = '',
+                help = format_help('Specific file exts for operation, muti exti separated by comma.'))
+
     parser.add_argument('-d', '--dir', action = 'store',
                 dest = 'dir', type = str,
                 help = format_help('Dir to recursive remove spaces at the end of the line.'))
@@ -234,12 +251,12 @@ if __name__ == '__main__':
             filename = os.path.basename(options.file)
             if not str(filename).startswith('.'):
                 options.file = os.path.abspath(options.file)
-                deal_with_file(options.file)
+                deal_with_file(options.file, options.exts)
             else:
                 LOG.info("skip the file of %s." % filename)
         elif options.dir is not None:
             options.dir = os.path.abspath(options.dir)
-            deal_with_dir(options.dir)
+            deal_with_dir(options.dir, options.exts)
         else:
             LOG.error("Error: parameter -d or -f must have one.")
     except Exception as e:
