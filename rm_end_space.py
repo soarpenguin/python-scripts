@@ -5,15 +5,11 @@
 import os
 import re
 import sys
+import time
 import argparse
 import logging
 import subprocess
 from logging.handlers import RotatingFileHandler
-
-try:
-    import simplejson as json
-except ImportError:
-    import json
 
 # PY3?
 is_py3 = sys.version_info >= (3, 3)
@@ -34,12 +30,15 @@ RET_OK           = 0
 RET_FAILED       = 1
 RET_INVALID_ARGS = 2
 
+USE_SHELL = sys.platform.startswith("win")
+
+
 def error_exit(msg, status=RET_FAILED):
     """ error message display and exit."""
     LOG.error('%s\n' % msg)
     sys.exit(status)
 
-USE_SHELL = sys.platform.startswith("win")
+
 def exec_cmd_with_stderr(command,
                          retry_times = 1,
                          retry_interval_sec = 0,
@@ -69,9 +68,11 @@ def exec_cmd_with_stderr(command,
         except subprocess.CalledProcessError, er:
             ret = er.returncode
             retry_times -= 1
-            if retry_interval_sec > 0: time.sleep(retry_interval_sec)
+            if retry_interval_sec > 0:
+                time.sleep(retry_interval_sec)
 
     return ret, output, errout
+
 
 def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
     """Sets up logging and associated handlers."""
@@ -119,7 +120,8 @@ def deal_with_file(filename, exts=''):
         # Skip files that end with certain extensions or characters
         if any(str(filename).endswith(ext) for ext in EXCLUDE_EXT):
             LOG.info("skip the file of %s" % filename)
-        elif str(filename).startswith('.') and not str(filename).startswith('./'):
+        elif str(filename).startswith('.') and \
+             not str(filename).startswith('./'):
             LOG.info("skip the file of %s" % filename)
         else:
             cmd = cmd + " " + filename
@@ -146,7 +148,8 @@ def deal_with_dir(dirpath, exts=''):
             if not str(name).strip().startswith("."):
                 f = os.path.join(dirpath, name)
 
-                if os.path.isdir(f) and os.access(f, os.W_OK) and not os.path.islink(f):
+                if os.path.isdir(f) and os.access(f, os.W_OK) and \
+                   not os.path.islink(f):
                     # directory, recurse into it
                     deal_with_dir(f, exts)
 
@@ -159,10 +162,10 @@ def deal_with_dir(dirpath, exts=''):
                 LOG.info("skip the file of %s" % name)
 
 
-INDENT = ' ' * 2
 def format_help(help_info, choices=None):
     """ format help infomation string. """
 
+    INDENT = ' ' * 2
     if isinstance(help_info, list):
         help_str_list = help_info[:]
     else:
@@ -188,12 +191,11 @@ def parse_argument():
     Please see the readme for complete examples.
     """
 
-    parser = argparse.ArgumentParser(description='Cmd line tool for rm spaces in the end of line.',\
+    parser = argparse.ArgumentParser(description='Cmd line tool for rm spaces in the end of line.',
             epilog = epilog_example, formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--version', action = 'version',
-                version = '%(prog)s 1.0'
-            )
+                version = '%(prog)s 1.0')
 
     parser.add_argument('--max-bytes', action = 'store', dest = 'max_bytes',
                 type = int, default = 64 * 1024 * 1024,
@@ -222,14 +224,14 @@ def parse_argument():
     options = parser.parse_args()
 
     if (options.file is None and options.dir is None) \
-                    or (options.file and options.dir):
+       or (options.file and options.dir):
         print("Error: parameter -d or -f just for one.\n")
         parser.print_usage()
         sys.exit(RET_FAILED)
 
     return parser, options
 
-################# main route ######################
+# ################# main route ######################
 if __name__ == '__main__':
 
     parser, options = parse_argument()
@@ -262,4 +264,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(sys.exc_info())
         sys.exit(RET_FAILED)
-
