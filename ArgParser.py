@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- utf-8 -*-
+
+# document:
+#   https://docs.python.org/2/library/argparse.html
+#   https://docs.python.org/2/library/optparse.html
+
 import argparse
 import logging
 import sys
@@ -35,6 +42,8 @@ def parse_argument():
 
     parser.add_argument('-v','--verbose', dest='verbosity', default=0, action="count",
                         help="verbose mode (-vvv for more, -vvvv to enable connection debugging)")
+
+    parser.add_argument('bar', nargs='+', help='bar positional arguments.')
 
     parser.add_argument('-s', action='store',
                         dest='simple_value',
@@ -81,6 +90,7 @@ if __name__ == '__main__':
     LOG.setLevel(logging.DEBUG)
     LOG.debug("Print option value...")
 
+    print results.bar
     print results.simple_value
     print results.constant_value
     print results.boolean_switch

@@ -158,6 +158,9 @@ class SortedOptParser(optparse.OptionParser):
         self.option_list.sort(key=operator.methodcaller('get_opt_string'))
         return optparse.OptionParser.format_help(self, formatter=None)
 
+def expand_tilde(option, opt, value, parser):
+    setattr(parser.values, option.dest, os.path.expanduser(value))
+
 def parse_cmdline(argv):
     """Parses the command-line."""
 
@@ -169,9 +172,10 @@ def parse_cmdline(argv):
                         help='file name for save.')
     parser.add_option('-u', '--url', dest='url', metavar='URL',
                         help='url file for download.')
-    parser.add_option('-f', '--filelist', dest='filelist', metavar='str',
+    parser.add_option('-f', '--filelist', dest='filelist', metavar='FILE',
                         help='url file list for batch download.')
     parser.add_option('-d', '--dest', dest='dest', metavar='str',
+                        action="callback", callback=expand_tilde,
                         default="./", help='dest dir for save file.')
     parser.add_option('-p', '--progress', action="store_true", default=False,
         dest='progress', help='disable progress bar fuction, default:enable.')
@@ -179,7 +183,7 @@ def parse_cmdline(argv):
 
     if options.url is None and options.filelist is None:
         parser.print_usage()
-        error_exit("option -u or -l is must.")
+        error_exit("option -u or -f is must.")
 
     if os.path.exists(options.dest):
         if not os.path.isdir(options.dest):
