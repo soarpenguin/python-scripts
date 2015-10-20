@@ -162,8 +162,8 @@ def parse_argument():
                 help = format_help('File name for module configure(yml format).'))
 
     parser.add_argument('--action', action = 'store', required = True,
-                dest = 'action', type = str,
-                help = format_help('Action name for script do. (check,update,deploy,rollback)'))
+                dest = 'action', type = str, choices = ['check', 'update', 'deploy', 'rollback'],
+                help = format_help('Action name for script do.'))
 
     options = parser.parse_args()
 
