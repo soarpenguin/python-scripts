@@ -6,18 +6,30 @@
 #    the main file for system info is:
 #      /proc/stat /proc/<pid>/status /proc/<pid>/stam etc.
 
+from __future__ import print_function
 import sys
 import re
 import os
 from optparse import OptionParser
 from terminal import *
-import curses, traceback
+import traceback
 import atexit
 import fcntl
 import time
 import signal
 
+try:
+    import curses, _curses
+except ImportError:
+    print("Curse is not available on this system. Exiting.", file=sys.stderr)
+    sys.exit(0)
+
 NUMREGX = re.compile(r'^(-{0,1}|\+{0,1})[0-9]+(\.{0,1}[0-9]+)$')
+CONFIGURATION = {
+        'pause_refresh': False,
+        'refresh_interval': 3.0,
+        'help_mode': False,
+}
 
 
 def read_uptime():
@@ -433,11 +445,65 @@ def header(processes, memory):
 
     return head
 
-def end():
+def on_keyboard(scr, c):
+    '''Handle keyborad shortcuts'''
+    if c == ord('q'):
+        raise KeyboardInterrupt()
+    elif c == ord('p'):
+        CONFIGURATION['pause_refresh'] = not CONFIGURATION['pause_refresh']
+    elif c == ord('h') or c == ord('?'):
+        CONFIGURATION['pause_refresh'] = not CONFIGURATION['pause_refresh']
+        display(scr, usage(), False)
+        return 1
+
+    return 1
+
+def on_mouse():
+    '''Update selected line / sort'''
+    _, x, y, z, bstate =  curses.getmouse()
+
+    # Left button click ?
+    if bstate & curses.BUTTON1_CLICKED:
+        # Is it title line ?
+        if y == 0:
+            # Determine sort column based on offset / col width
+            x_max = 0
+            return 2
+        # Is it a cgroup line ?
+    return 1
+
+def on_resize():
+    '''Redraw screen, do not refresh'''
+    return 2
+
+def event_listener(scr, timeout):
+    '''
+    Wait for curses events on screen ``scr`` at mot ``timeout`` ms
+
+    return
+     - 1 OK
+     - 2 redraw
+     - 0 error
+    '''
+    try:
+        scr.timeout(timeout)
+        c = scr.getch()
+        if c == -1:
+            return 1
+        elif c == curses.KEY_MOUSE:
+            return on_mouse()
+        elif c == curses.KEY_RESIZE:
+            return on_resize()
+        else:
+            return on_keyboard(scr, c)
+    except _curses.error:
+        return 0
+
+def do_finish():
     """ Stop top.py and reinit curses."""
-    curses.echo()
     curses.nocbreak()
-    curses.curs_set(1)
+    stdscr.keypad(0)
+    curses.echo()
     curses.endwin()
 
     #The end...
@@ -445,7 +511,7 @@ def end():
 
 def signal_handler():
     """Callback for CTRL-C."""
-    end()
+    do_finish()
 
 class Timer(object):
     """The timer class. A simple chronometer."""
@@ -466,104 +532,83 @@ class Timer(object):
     def finished(self):
         return time() > self.target
 
+def init_screen():
+    curses.start_color() # load colors
+    curses.use_default_colors()
+    curses.noecho()      # do not echo text
+    curses.cbreak()      # do not wait for "enter"
+    curses.mousemask(curses.ALL_MOUSE_EVENTS)
+
+    # Hide cursor, if terminal AND curse supports it
+    if hasattr(curses, 'curs_set'):
+        try:
+            curses.curs_set(0)
+        except:
+            pass
+
+def display(scr, info, head=False):
+    # Get display informations
+    height, width = scr.getmaxyx()
+    list_height = height - 5 # title + status lines
+
+    # Display statistics
+    scr.clear()
+
+    scr.addstr(0, 0, info)
+    #scr.addstr(5, 0, "\n")
+
+    if head:
+        title = "  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND"
+        scr.addstr(6, 0, ' '*width, curses.color_pair(2))
+        scr.addstr(6, 0, title, curses.color_pair(2))
+
+    scr.refresh()
+
+
 def main(argv):
     """ The main top entry point and loop."""
 
     options, args = parse_cmdline(argv)
-    delay = 3
-    #clrscr()
-    size = getpagesize()
-    #print size
-    #print fmttime(3600)
-    cpus = get_cpu_info()
-    #for elem in cpus:
-    #    for key in elem.keys():
-    #        print "%s => %s" % (key, elem.get(key))
-    #print get_all_process()
-    #print get_sys_loads()
-    #print get_memswap_info()
-    #print scale_num(1024, 4, size)
-    #print fmt_mem_percent(1024, 4096, size)
-    #usage()
-    #set_fd_nonblocking(sys.stdout)
-    processes = get_all_process()
-    memory = get_memswap_info()
-    print header(processes, memory)
+    CONFIGURATION['refresh_interval'] = float(options.delay)
 
-    #processes = get_all_process()
-    #proc_list = list()
-    #for item in processes:
-    #    proc_t = get_process_stat(item)
-    #    proc_list.append(proc_t)
+    try:
+        screen = curses.initscr()
+        init_screen()
+        atexit.register(curses.endwin)
+        screen.keypad(1)     # parse keypad control sequences
 
-    #new_proc_list = sorted(proc_list, key=lambda k: k['pcpu'], reverse=True)
-    #for item in new_proc_list:
-    #    print "%s =>  %s:%s  %s: %s" % (item.get("pid"), item.get("utime"),\
-    #            item.get("stime"), "pcpu", item.get('pcpu'))
+        # Curses colors
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN) # header
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_CYAN)  # focused header / line
+        curses.init_pair(3, curses.COLOR_WHITE, -1)  # regular
+        curses.init_pair(4, curses.COLOR_CYAN,  -1)  # tree
 
-    #stats = get_process_stat("1")
-    #for key in stats.keys():
-    #    print "%s => %s" % (key, stats.get(key))
+        #height,width = screen.getmaxyx()
+        #signal.signal(signal.SIGINT, signal_handler)
+        #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
 
-    #all_user = get_all_user()
-    #sys.exit(0)
+        while True:
+            #screen.timeout(0)
+            processes = get_all_process()
+            memory = get_memswap_info()
+            display(screen, header(processes, memory), True)
 
-    #try:
-    screen = curses.initscr()
-    #curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    atexit.register(curses.endwin)
+            sleep_start = time.time()
+            #while CONFIGURATION['pause_refresh'] or time.time() < sleep_start + CONFIGURATION['refresh_interval']:
+            while CONFIGURATION['pause_refresh'] or time.time() < sleep_start + CONFIGURATION['refresh_interval']:
+                if CONFIGURATION['pause_refresh']:
+                    to_sleep = -1
+                else:
+                    to_sleep = int((sleep_start + CONFIGURATION['refresh_interval'] - time.time())*1000)
 
-    if hasattr(curses, 'noecho'):
-        curses.noecho()
-    if hasattr(curses, 'cbreak'):
-        curses.cbreak()
-    if hasattr(curses, 'curs_set'):
-        try:
-            curses.curs_set(0)
-        except Exception:
-            pass
+                ret = event_listener(screen, to_sleep)
+                if ret == 2:
+                    display(screen, header(processes, memory), True)
 
-    term_window = screen.subwin(0, 0)
-    term_window.keypad(1)
-    term_window.nodelay(1)
-    #screen.clear()
-    #screen.addstr(0, 0, "screen", curses.A_BLINK)
-
-    height,width = screen.getmaxyx()
-    signal.signal(signal.SIGINT, signal_handler)
-    #screen.addstr(height - 1, 0, "position string", curses.A_BLINK)
-
-    while True:
-        #screen.timeout(0)
-        processes = get_all_process()
-        memory = get_memswap_info()
-        term_window.erase()
-        term_window.addstr(0, 0, header(processes, memory))
-        term_window.addstr(5, 0, "\n")
-
-        coutdown = Timer(delay)
-        while not coutdown.finished():
-            event = term_window.getch()
-            if event == ord("q"):
-                break
-            elif event == ord("h") or event == ord("?"):
-                term_window.erase()
-                term_window.addstr(0, 0, usage())
-
-            #time.sleep(delay)
-            term_window.addstr(0, 0, header(processes, memory))
-            curses.napms(100)
-
-    end()
-    #except:
-    #    curses.nocbreak()
-    #    if screen:
-    #        screen.keypad(0)
-    #    curses.echo()
-    #    traceback.print_exc()
-    #finally:
-    #    curses.endwin()
-
+    except KeyboardInterrupt:
+        pass
+    finally:
+        do_finish()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
