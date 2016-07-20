@@ -242,9 +242,9 @@ if __name__ == '__main__':
     rcfile = open(rclocal,"a")
     startstr = "\n# Start %s ip %s." % (options.suffix, str(datetime.now()))
     if options.debug:
-        print startstr
+        print startstr,
     else:
-        print startstr
+        print startstr,
     	rcfile.write(startstr)
 
     for key in ips:
@@ -263,12 +263,12 @@ if __name__ == '__main__':
             LOG.error("%s is not a valid ip.", newip)
             sys.exit(RET_FAILED)
 
-        ifcmd = "ifconfig %s:%s %s network %s up" % (key, options.suffix, newip, mask)
+        ifcmd = "ifconfig %s:%s %s netmask %s up \n" % (key, options.suffix, newip, mask)
         routecmd = ""
         subgateway = ""
         if key.startswith("lo:"):
-            ifcmd = "ifconfig %s:%s %s broadcast %s netmask %s up" % (key, options.suffix, newip, newip, mask)
-            routecmd = "route add -host %s dev %s:%s" % (newip, key, options.suffix)
+            ifcmd = "ifconfig %s:%s %s broadcast %s netmask %s up \n" % (key, options.suffix, newip, newip, mask)
+            routecmd = "route add -host %s dev %s:%s \n" % (newip, key, options.suffix)
         else:
             if "default" in gateways.keys():
                 subgateway = gateways["default"].replace(args[0], args[1])
@@ -278,14 +278,14 @@ if __name__ == '__main__':
             if subgateway == "":
                 LOG.error("gateway is empty in add ip: %s", ip)
                 sys.exit(RET_FAILED)
-            routecmd = "ip r a 11.0.0.0/8 via %s" % (subgateway)
+            routecmd = "ip r a 11.0.0.0/8 via %s \n" % (subgateway)
 
         if options.debug:
-            print ifcmd
-            print routecmd
+            print ifcmd,
+            print routecmd,
         else:
-            print "run:", ifcmd
-            print "run:", routecmd
+            print "run:", ifcmd,
+            print "run:", routecmd,
             
             ret, output, errout = exec_cmd_with_stderr(ifcmd)
             if ret != 0:
@@ -301,9 +301,9 @@ if __name__ == '__main__':
 
     endstr = "# End %s ip.\n" % (options.suffix)
     if options.debug:
-        print endstr
+        print endstr,
     else:
-        print endstr
+        print endstr,
         rcfile.write(endstr)
 
     if rcfile:
