@@ -163,6 +163,15 @@ def valid_ip(ipstr):
     except (AttributeError, TypeError):
         return False # `ip` isn't even a string
 
+def lines_that_equal(filename, line_to_match):
+    try:
+        fp = open(filename,"r")
+        for line in fp:
+            if line.strip() == line_to_match.strip():
+                return 1
+	return 0
+    finally:
+	fp.close()
 
 
 # ################# main route ######################
@@ -291,13 +300,15 @@ if __name__ == '__main__':
             if ret != 0:
                 LOG.error("run cmd %s failed: %s.", ifcmd, errout)
             else:
-	        rcfile.write(ifcmd)
+                if lines_that_equal(rclocal, ifcmd) == 0:
+	            rcfile.write(ifcmd)
 
             ret, output, errout = exec_cmd_with_stderr(routecmd)
             if ret != 0:
                 LOG.error("run cmd %s failed: %s.", routecmd, errout)
             else:
-                rcfile.write(routecmd)
+                if lines_that_equal(rclocal, routecmd) == 0:
+                    rcfile.write(routecmd)
 
     endstr = "# End %s ip.\n" % (options.suffix)
     if options.debug:
